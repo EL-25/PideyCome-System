@@ -11,7 +11,7 @@
     <div class="bg-white p-8 rounded-2xl shadow-xl w-96 border-t-8 border-[#F28705]">
         
         <div class="flex flex-col items-center mb-6">
-            <img src="{{ asset('img/PideyCome.png') }}" alt="Logo PideYCome" class="w-40 h-auto mb-4">
+            <img src="{{ asset('img/PideYCome.png') }}" alt="Logo PideYCome" class="w-40 h-auto mb-4">
             <h2 class="text-3xl font-bold text-[#F28705] text-center tracking-tight">PideYCome</h2>
         </div>
         
