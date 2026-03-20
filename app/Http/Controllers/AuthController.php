@@ -34,7 +34,7 @@ class AuthController extends Controller
             
             return match($role) {
                 'admin'   => redirect()->intended('/admin/dashboard'),
-                'mesero'  => redirect()->intended('/mesero/dashboard'),
+                'mesero'  => redirect()->route('mesero.index'),
                 'cocina'  => redirect()->intended('/cocina/dashboard'),
                 'cajera'  => redirect()->intended('/cajera/dashboard'),
                 default   => redirect('/'),
