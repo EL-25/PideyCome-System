@@ -11,7 +11,8 @@ class CocinaController extends Controller
     {
         $tab = $request->input('tab', 'todas');
 
-        $query = Pedido::with(['detalles.producto', 'mesero'])
+        // Cargamos relaciones para evitar errores de "propiedad no encontrada"
+        $query = Pedido::with(['detalles.producto', 'user']) // Cambié 'mesero' por 'user' si es la relación de Auth
                        ->where('estado', '!=', 'despachada')
                        ->orderBy('created_at', 'asc');
 
@@ -25,7 +26,7 @@ class CocinaController extends Controller
 
         $pedidos = $query->get();
 
-        // --- CAMBIO CLAVE PARA AJAX ---
+        // Renderiza el partial que acabas de crear en la nueva carpeta
         if ($request->ajax()) {
             return view('cocina.partials.pedidos_cards', compact('pedidos'))->render();
         }
@@ -33,10 +34,14 @@ class CocinaController extends Controller
         return view('cocina.index', compact('pedidos', 'tab'));
     }
 
+    /**
+     * Este método coincide con la ruta 'cocina.despachar' en web.php
+     */
     public function avanzarEstado(Request $request, $id)
     {
         $pedido = Pedido::findOrFail($id);
 
+        // Lógica de progresión de estados
         $siguienteEstado = match ($pedido->estado) {
             'ordenada'   => 'recibida',
             'recibida'   => 'preparando',
@@ -46,6 +51,7 @@ class CocinaController extends Controller
 
         $pedido->estado = $siguienteEstado;
 
+        // Si ya está lista, marcamos la notificación para el mesero
         if ($siguienteEstado === 'despachada') {
             $pedido->notificacion_leida = false; 
         }
@@ -55,7 +61,6 @@ class CocinaController extends Controller
         $label = $this->obtenerLabel($siguienteEstado);
         $mensaje = "¡Orden #{$pedido->id} actualizada a: {$label}!";
         
-        // --- CAMBIO CLAVE PARA RESPUESTA JSON ---
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
