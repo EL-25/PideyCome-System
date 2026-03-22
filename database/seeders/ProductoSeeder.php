@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Producto; // Importante importar el modelo
+use App\Models\Producto;
 
 class ProductoSeeder extends Seeder
 {
@@ -19,11 +19,20 @@ class ProductoSeeder extends Seeder
             ['nombre' => 'Agua Mineral', 'precio' => 1.50, 'categoria' => 'Bebidas', 'stock' => 25],
             ['nombre' => 'Limonada Natural', 'precio' => 3.00, 'categoria' => 'Bebidas', 'stock' => 15],
             ['nombre' => 'Café Americano', 'precio' => 2.00, 'categoria' => 'Bebidas', 'stock' => 40],
-            ['nombre' => 'Helado de Vainilla', 'precio' => 4.50, 'categoria' => 'Postres', 'stock' => 0], // Este saldrá Agotado
+            ['nombre' => 'Helado de Vainilla', 'precio' => 4.50, 'categoria' => 'Postres', 'stock' => 0],
         ];
 
         foreach ($productos as $p) {
-            Producto::create($p);
+            // updateOrCreate busca por el primer array (nombre)
+            // Si lo halla, actualiza con el segundo array. Si no, lo crea.
+            Producto::updateOrCreate(
+                ['nombre' => $p['nombre']], 
+                [
+                    'precio' => $p['precio'],
+                    'categoria' => $p['categoria'],
+                    'stock' => $p['stock']
+                ]
+            );
         }
     }
 }
