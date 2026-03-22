@@ -158,7 +158,6 @@ class MeseroController extends Controller
                 foreach ($carrito as $id => $item) {
                     PedidoDetalle::create([
                         'pedido_id'       => $pedido->id,
-                        'producto_id'     => $id, // CORRECCIÓN: Ahora sí guardamos el ID para la relación
                         'producto_nombre' => $item['nombre'],
                         'cantidad'        => $item['cantidad'],
                         'precio'          => $item['precio']
