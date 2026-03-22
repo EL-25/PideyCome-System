@@ -31,8 +31,8 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('cocina')->group(function () {
         Route::get('/', [CocinaController::class, 'index'])->name('cocina.index');
         
-        // Ajustado a 'despachar' para que coincida con tu nuevo pedidos_cards.blade.php
-        Route::post('/despachar/{id}', [CocinaController::class, 'avanzarEstado'])->name('cocina.despachar');
+        // Cambiado a patch para que coincida con @method('PATCH') de tu Blade
+        Route::patch('/despachar/{id}', [CocinaController::class, 'avanzarEstado'])->name('cocina.despachar');
     });
 
     // --- CARRITO AJAX ---

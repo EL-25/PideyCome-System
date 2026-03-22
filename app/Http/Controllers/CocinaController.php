@@ -12,7 +12,8 @@ class CocinaController extends Controller
         $tab = $request->input('tab', 'todas');
 
         // Cargamos relaciones para evitar errores de "propiedad no encontrada"
-        $query = Pedido::with(['detalles.producto', 'user']) // Cambié 'mesero' por 'user' si es la relación de Auth
+        // CORRECTO: Usamos 'mesero' porque así se llama la función en el modelo
+        $query = Pedido::with(['detalles.producto', 'mesero'])
                        ->where('estado', '!=', 'despachada')
                        ->orderBy('created_at', 'asc');
 

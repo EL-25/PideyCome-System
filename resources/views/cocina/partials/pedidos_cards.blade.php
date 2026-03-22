@@ -27,7 +27,7 @@
                         <span class="bg-orange-500/10 text-orange-600 font-black text-xs px-2 py-0.5 rounded-lg">
                             {{ $detalle->cantidad }}
                         </span>
-                        <span class="text-sm font-bold text-gray-700">{{ $detalle->producto->nombre }}</span>
+                        <span class="text-sm font-bold text-gray-700">{{ $detalle->producto->nombre ?? 'Producto no encontrado' }}</span>
                     </div>
                 </div>
             @endforeach
