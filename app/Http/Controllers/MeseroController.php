@@ -23,13 +23,11 @@ class MeseroController extends Controller
         $productos = $query->get();
         $carrito = session()->get('carrito', []);
 
-        // Si la petición es AJAX, solo devolvemos la cuadrícula de productos
         if ($request->ajax()) {
             return view('mesero.partials.productos_grid', compact('productos'))->render();
         }
 
-        // --- LÓGICA DE NOTIFICACIONES (ACTUALIZADA) ---
-        // Contamos órdenes listas para entregar que este mesero no ha "visto"
+        // Lógica de notificaciones para el mesero
         $notificacionesCount = Pedido::where('user_id', Auth::id())
             ->where('estado', 'despachada') 
             ->where('notificacion_leida', false)
@@ -38,19 +36,16 @@ class MeseroController extends Controller
         return view('mesero.index', compact('productos', 'carrito', 'notificacionesCount'));
     }
 
-    // --- VISTA "MIS ÓRDENES" (ACTUALIZADA) ---
     public function misOrdenes(Request $request)
     {
-        // IMPORTANTE: Al entrar aquí, marcamos como leídas las notificaciones
-        // Esto hace que la burbuja roja desaparezca automáticamente.
+        // Al entrar, marcamos como leídas las notificaciones de órdenes despachadas
         Pedido::where('user_id', Auth::id())
             ->where('estado', 'despachada')
             ->where('notificacion_leida', false)
             ->update(['notificacion_leida' => true]);
 
-        $query = Pedido::where('user_id', Auth::id())->with('detalles');
+        $query = Pedido::where('user_id', Auth::id())->with('detalles.producto');
 
-        // Filtro por mesa
         if ($request->filled('mesa') && $request->mesa != 'Todas las órdenes') {
             $query->where('mesa_id', $request->mesa);
         }
@@ -64,7 +59,7 @@ class MeseroController extends Controller
         return view('mesero.mis_ordenes', compact('ordenes'));
     }
 
-    // --- TUS FUNCIONES AJAX DEL CARRITO (SIN CAMBIOS PARA TU SEGURIDAD) ---
+    // --- FUNCIONES AJAX DEL CARRITO ---
 
     public function agregarAjax(Request $request)
     {
@@ -140,6 +135,7 @@ class MeseroController extends Controller
         ]);
     }
 
+    // --- PROCESAR LA ORDEN (CORREGIDO) ---
     public function store(Request $request)
     {
         $carrito = session()->get('carrito', []);
@@ -154,18 +150,21 @@ class MeseroController extends Controller
                     'cliente' => $request->cliente,
                     'tipo_orden' => $request->tipo_orden,
                     'mesa_id' => $request->tipo_orden == 'comer_aqui' ? $request->mesa_id : null,
-                    'estado' => 'ordenada', // Cambiado a minúscula para consistencia
+                    'estado' => 'ordenada', 
                     'total' => $total,
-                    'notificacion_leida' => true // Al crearse, no hay nada que notificar aún
+                    'notificacion_leida' => true 
                 ]);
 
                 foreach ($carrito as $id => $item) {
                     PedidoDetalle::create([
-                        'pedido_id' => $pedido->id,
+                        'pedido_id'       => $pedido->id,
+                        'producto_id'     => $id, // CORRECCIÓN: Ahora sí guardamos el ID para la relación
                         'producto_nombre' => $item['nombre'],
-                        'cantidad' => $item['cantidad'],
-                        'precio' => $item['precio']
+                        'cantidad'        => $item['cantidad'],
+                        'precio'          => $item['precio']
                     ]);
+                    
+                    // Descontamos stock del producto en Railway
                     Producto::where('id', $id)->decrement('stock', $item['cantidad']);
                 }
             });
@@ -173,7 +172,7 @@ class MeseroController extends Controller
             session()->forget('carrito');
             return redirect()->route('mesero.index')->with('success', '¡Orden enviada a cocina!');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error al procesar: ' . $e->getMessage());
         }
     }
 
