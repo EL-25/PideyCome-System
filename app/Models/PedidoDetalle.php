@@ -9,18 +9,22 @@ class PedidoDetalle extends Model
 {
     use HasFactory;
 
-    // Nombre de la tabla que crearemos en la migración
     protected $table = 'pedido_detalles';
 
-    // Campos que se pueden llenar
     protected $fillable = [
         'pedido_id', 
+        'producto_id', // Cambia o asegúrate de tener producto_id para la relación
         'producto_nombre', 
         'cantidad', 
         'precio'
     ];
 
-    // Relación: Este detalle pertenece a un pedido
+    // Permite hacer: $detalle->producto->nombre
+    public function producto()
+    {
+        return $this->belongsTo(Producto::class, 'producto_id');
+    }
+
     public function pedido()
     {
         return $this->belongsTo(Pedido::class);

@@ -23,33 +23,40 @@ class MeseroController extends Controller
         $productos = $query->get();
         $carrito = session()->get('carrito', []);
 
-        // Si la petición es AJAX (clic en Comida/Bebida), solo devolvemos la cuadrícula de productos
+        // Si la petición es AJAX, solo devolvemos la cuadrícula de productos
         if ($request->ajax()) {
             return view('mesero.partials.productos_grid', compact('productos'))->render();
         }
 
-        // LÓGICA DE NOTIFICACIONES: Contamos órdenes listas para entregar (Despachadas)
+        // --- LÓGICA DE NOTIFICACIONES (ACTUALIZADA) ---
+        // Contamos órdenes listas para entregar que este mesero no ha "visto"
         $notificacionesCount = Pedido::where('user_id', Auth::id())
-            ->where('estado', 'Despachada') 
+            ->where('estado', 'despachada') 
             ->where('notificacion_leida', false)
             ->count();
 
         return view('mesero.index', compact('productos', 'carrito', 'notificacionesCount'));
     }
 
-    // --- NUEVA FUNCIÓN PARA LA VISTA "MIS ÓRDENES" ---
+    // --- VISTA "MIS ÓRDENES" (ACTUALIZADA) ---
     public function misOrdenes(Request $request)
     {
+        // IMPORTANTE: Al entrar aquí, marcamos como leídas las notificaciones
+        // Esto hace que la burbuja roja desaparezca automáticamente.
+        Pedido::where('user_id', Auth::id())
+            ->where('estado', 'despachada')
+            ->where('notificacion_leida', false)
+            ->update(['notificacion_leida' => true]);
+
         $query = Pedido::where('user_id', Auth::id())->with('detalles');
 
-        // Filtro por mesa (Captura image_b8a981.png)
+        // Filtro por mesa
         if ($request->filled('mesa') && $request->mesa != 'Todas las órdenes') {
             $query->where('mesa_id', $request->mesa);
         }
 
         $ordenes = $query->orderBy('created_at', 'desc')->get();
 
-        // Si filtramos por mesa vía AJAX, solo devolvemos la lista de tarjetas
         if ($request->ajax()) {
             return view('mesero.partials.pedidos_lista', compact('ordenes'))->render();
         }
@@ -57,7 +64,7 @@ class MeseroController extends Controller
         return view('mesero.mis_ordenes', compact('ordenes'));
     }
 
-    // --- FUNCIONES AJAX DEL CARRITO (Se mantienen tus mejoras) ---
+    // --- TUS FUNCIONES AJAX DEL CARRITO (SIN CAMBIOS PARA TU SEGURIDAD) ---
 
     public function agregarAjax(Request $request)
     {
@@ -147,8 +154,9 @@ class MeseroController extends Controller
                     'cliente' => $request->cliente,
                     'tipo_orden' => $request->tipo_orden,
                     'mesa_id' => $request->tipo_orden == 'comer_aqui' ? $request->mesa_id : null,
-                    'estado' => 'Ordenada',
-                    'total' => $total
+                    'estado' => 'ordenada', // Cambiado a minúscula para consistencia
+                    'total' => $total,
+                    'notificacion_leida' => true // Al crearse, no hay nada que notificar aún
                 ]);
 
                 foreach ($carrito as $id => $item) {
@@ -163,19 +171,15 @@ class MeseroController extends Controller
             });
 
             session()->forget('carrito');
-            return redirect()->route('mesero.index')->with('success', '¡Orden enviada!');
+            return redirect()->route('mesero.index')->with('success', '¡Orden enviada a cocina!');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
         }
     }
 
-    // --- FUNCIÓN PARA LIMPIAR EL CARRITO ---
     public function limpiar()
     {
-        // Eliminamos la variable 'carrito' de la sesión
         session()->forget('carrito');
-        
-        // Redireccionamos de vuelta al panel con un mensaje
         return redirect()->route('mesero.index')->with('success', 'Orden limpiada correctamente.');
     }
 }

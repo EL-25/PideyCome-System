@@ -34,7 +34,7 @@
                     </div>
                     <div>
                         <h1 class="font-bold text-gray-900 leading-none">PideYCome</h1>
-                        <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{{ Auth::user()->username }} - Mesero</span>
+                        <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{{ Auth::user()->name }} - Mesero</span>
                     </div>
                 </div>
 
@@ -49,10 +49,11 @@
             </div>
 
             <div class="flex items-center gap-6">
+                {{-- Campanita de Notificaciones --}}
                 <a href="{{ route('mesero.ordenes') }}" class="relative group cursor-pointer">
                     <i data-lucide="bell" class="w-6 h-6 text-gray-400 group-hover:text-orange-500 transition-colors"></i>
                     @if(isset($notificacionesCount) && $notificacionesCount > 0)
-                        <span class="absolute -top-2 -right-2 bg-orange-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white animate-bounce">
+                        <span class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white animate-bounce shadow-sm">
                             {{ $notificacionesCount }}
                         </span>
                     @endif
@@ -138,7 +139,7 @@
 
                             <div>
                                 <label class="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Cliente <span class="text-red-500">*</span></label>
-                                <input type="text" name="cliente" placeholder="Nombre completo..." required 
+                                <input type="text" id="input_cliente" name="cliente" placeholder="Nombre completo..." required 
                                        class="w-full mt-2 bg-gray-50 border-transparent rounded-2xl p-4 font-bold focus:bg-white focus:ring-2 focus:ring-orange-500 outline-none transition-all placeholder:text-gray-300">
                             </div>
                         </div>
@@ -165,18 +166,29 @@
         lucide.createIcons();
         axios.defaults.headers.common['X-CSRF-TOKEN'] = '{{ csrf_token() }}';
 
+        // --- REFRESCAR NOTIFICACIONES CADA 30 SEGUNDOS ---
+        setInterval(function() {
+            const inputCliente = document.getElementById('input_cliente');
+            const carritoItems = document.getElementById('carrito-items');
+            
+            // Solo recarga si el mesero no está escribiendo y el carrito no tiene cosas críticas
+            // O si simplemente quieres que la campanita se actualice
+            if (document.activeElement !== inputCliente) {
+                console.log('Sincronizando órdenes listas...');
+                window.location.reload();
+            }
+        }, 30000);
+
         // --- FILTRADO DE CATEGORÍAS AJAX ---
         function filtrarCategoriaAjax(categoria) {
             const grid = document.getElementById('grid-productos');
             grid.classList.add('opacity-50');
 
-            // Actualizar estilos de botones en tiempo real
             document.querySelectorAll('.btn-categoria').forEach(btn => {
                 btn.classList.remove('bg-orange-500', 'text-white', 'shadow-lg', 'shadow-orange-100');
                 btn.classList.add('bg-white', 'text-gray-400');
             });
 
-            // Pintamos el botón activo
             const btnActivo = document.getElementById(`btn-cat-${categoria}`);
             btnActivo.classList.remove('bg-white', 'text-gray-400');
             btnActivo.classList.add('bg-orange-500', 'text-white', 'shadow-lg', 'shadow-orange-100');
@@ -289,7 +301,6 @@
             }, 4000);
         }
 
-        // Mostrar/Ocultar mesa
         document.getElementById('tipo_orden').addEventListener('change', function() {
             document.getElementById('div_mesa').style.display = (this.value === 'para_llevar') ? 'none' : 'block';
         });

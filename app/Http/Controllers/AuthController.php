@@ -32,11 +32,12 @@ class AuthController extends Controller
             // Redirección inteligente por ROL
             $role = Auth::user()->role;
             
+            // ACTUALIZADO: Usamos route() para que coincida con web.php
             return match($role) {
-                'admin'   => redirect()->intended('/admin/dashboard'),
+                'admin'   => redirect()->route('admin.index'),
                 'mesero'  => redirect()->route('mesero.index'),
-                'cocina'  => redirect()->intended('/cocina/dashboard'),
-                'cajera'  => redirect()->intended('/cajera/dashboard'),
+                'cocina'  => redirect()->route('cocina.index'), // Antes decía /cocina/dashboard
+                'cajera'  => redirect()->route('cajera.index'),
                 default   => redirect('/'),
             };
         }
