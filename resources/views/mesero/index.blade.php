@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    
     <title>PideYCome - Panel del Mesero</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -86,7 +88,6 @@
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
-            
             <div class="lg:col-span-2 space-y-8">
                 <div class="bg-white p-2 rounded-2xl shadow-sm border border-gray-100 inline-flex gap-1 overflow-x-auto max-w-full">
                     @foreach(['Todos', 'Comida', 'Bebidas', 'Postres'] as $cat)
@@ -164,9 +165,10 @@
     <script>
         lucide.createIcons();
         
-        // Configuración global de Axios para evitar errores 419 en Railway
+        // CONFIGURACIÓN AXIOS PARA EVITAR NETWORK ERROR
+        const csrfToken = document.head.querySelector('meta[name="csrf-token"]').content;
+        axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
         axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
-        axios.defaults.headers.common['X-CSRF-TOKEN'] = '{{ csrf_token() }}';
 
         // --- FILTRADO DE CATEGORÍAS AJAX ---
         function filtrarCategoriaAjax(categoria) {
@@ -206,8 +208,8 @@
                     showToast(response.data.message || 'Producto agregado', 'success');
                 })
                 .catch(error => {
-                    console.error(error);
-                    let msg = error.response?.data?.error || 'Error al agregar';
+                    console.error('Detalle del error:', error);
+                    let msg = error.response?.data?.error || 'Error al conectar con el servidor';
                     showToast(msg, 'error');
                 })
                 .finally(() => loader.classList.add('hidden'));
