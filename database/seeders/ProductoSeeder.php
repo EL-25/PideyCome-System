@@ -24,7 +24,7 @@ class ProductoSeeder extends Seeder
 
         foreach ($productos as $p) {
             // updateOrCreate busca por el primer array (nombre)
-            // Si lo halla, actualiza con el segundo array. Si no, lo crea.
+            // Si lo encuentra, actualiza con el segundo array. Si no, lo crea.
             Producto::updateOrCreate(
                 ['nombre' => $p['nombre']], 
                 [
