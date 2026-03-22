@@ -6,42 +6,62 @@
     <title>PideYCome - Panel del Mesero</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body class="bg-[#F8F9FA] text-gray-800 font-sans">
 
     <div id="toast-container" class="fixed top-5 right-5 z-[100] space-y-3 w-80">
         @if(session('info'))
-        <div class="flex items-center p-4 text-white bg-[#0D1B2A] rounded-xl shadow-lg border-l-4 border-blue-500 animate-fade-in">
-            <i data-lucide="info" class="w-5 h-5 mr-3 text-blue-400"></i>
-            <span class="text-sm font-medium">{{ session('info') }}</span>
-        </div>
+            <div class="flex items-center p-4 text-white bg-[#0D1B2A] rounded-xl shadow-lg border-l-4 border-blue-500 animate-fade-in">
+                <i data-lucide="info" class="w-5 h-5 mr-3 text-blue-400"></i>
+                <span class="text-sm font-medium">{{ session('info') }}</span>
+            </div>
         @endif
-
         @if(session('success'))
-        <div class="flex items-center p-4 text-white bg-[#011612] rounded-xl shadow-lg border-l-4 border-green-500 animate-fade-in">
-            <i data-lucide="check-circle" class="w-5 h-5 mr-3 text-green-400"></i>
-            <span class="text-sm font-medium">{{ session('success') }}</span>
-        </div>
+            <div class="flex items-center p-4 text-white bg-[#011612] rounded-xl shadow-lg border-l-4 border-green-500 animate-fade-in">
+                <i data-lucide="check-circle" class="w-5 h-5 mr-3 text-green-400"></i>
+                <span class="text-sm font-medium">{{ session('success') }}</span>
+            </div>
         @endif
     </div>
 
     <nav class="bg-white border-b border-gray-100 p-4 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="bg-orange-500 p-2 rounded-lg shadow-md shadow-orange-200">
-                    <i data-lucide="utensils" class="text-white w-5 h-5"></i>
+            <div class="flex items-center gap-8">
+                <div class="flex items-center gap-3">
+                    <div class="bg-orange-500 p-2 rounded-lg shadow-md shadow-orange-200">
+                        <i data-lucide="utensils" class="text-white w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-gray-900 leading-none">PideYCome</h1>
+                        <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{{ Auth::user()->username }} - Mesero</span>
+                    </div>
                 </div>
-                <div>
-                    <h1 class="font-bold text-gray-900 leading-none">Sistema Restaurante</h1>
-                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{{ Auth::user()->username }} - Mesero</span>
+
+                <div class="hidden md:flex items-center bg-gray-100 p-1 rounded-xl gap-1">
+                    <a href="{{ route('mesero.index') }}" class="px-6 py-2 rounded-lg text-sm font-black transition {{ Route::is('mesero.index') ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-400 hover:text-gray-600' }}">
+                        Nueva Orden
+                    </a>
+                    <a href="{{ route('mesero.ordenes') }}" class="px-6 py-2 rounded-lg text-sm font-black transition {{ Route::is('mesero.ordenes') ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-400 hover:text-gray-600' }}">
+                        Mis Órdenes
+                    </a>
                 </div>
             </div>
 
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-6">
+                <a href="{{ route('mesero.ordenes') }}" class="relative group cursor-pointer">
+                    <i data-lucide="bell" class="w-6 h-6 text-gray-400 group-hover:text-orange-500 transition-colors"></i>
+                    @if(isset($notificacionesCount) && $notificacionesCount > 0)
+                        <span class="absolute -top-2 -right-2 bg-orange-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white animate-bounce">
+                            {{ $notificacionesCount }}
+                        </span>
+                    @endif
+                </a>
+
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf
-                    <button type="submit" class="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-red-600 border border-transparent px-4 py-2 transition">
-                        <i data-lucide="log-out" class="w-4 h-4"></i> Cerrar Sesión
+                    <button type="submit" class="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-red-600 transition">
+                        <i data-lucide="log-out" class="w-4 h-4"></i> Salir
                     </button>
                 </form>
             </div>
@@ -49,18 +69,17 @@
     </nav>
 
     <main class="max-w-7xl mx-auto p-4 lg:p-8">
-        <header class="mb-10">
-            <h2 class="text-4xl font-black text-gray-900 tracking-tight">Panel del Mesero</h2>
-            <p class="text-gray-500 mt-1 font-medium">Mesero: {{ Auth::user()->username }}</p>
+        <header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+                <h2 class="text-4xl font-black text-gray-900 tracking-tight">Menú</h2>
+                <p class="text-gray-500 mt-1 font-medium italic">"Atendiendo con excelencia"</p>
+            </div>
             
-            <div class="flex gap-3 mt-8">
-                <a href="{{ route('mesero.index') }}" class="bg-white border border-gray-100 px-8 py-3 rounded-full font-bold flex items-center gap-2 shadow-sm text-orange-600 ring-1 ring-gray-100">
-                    <i data-lucide="plus" class="w-5 h-5"></i> Nueva Orden
-                </a>
-                <form action="{{ route('carrito.limpiar') }}" method="POST">
+            <div class="flex gap-3">
+                <form action="{{ route('mesero.limpiar') }}" method="POST">
                     @csrf
                     <button type="submit" class="bg-gray-200/40 text-gray-500 px-8 py-3 rounded-full font-bold flex items-center gap-2 hover:bg-gray-200 transition">
-                        <i data-lucide="trash-2" class="w-5 h-5"></i> Limpiar Carrito
+                        <i data-lucide="trash-2" class="w-5 h-5"></i> Limpiar Orden
                     </button>
                 </form>
             </div>
@@ -69,155 +88,216 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
             
             <div class="lg:col-span-2 space-y-8">
-                <div class="bg-white p-2 rounded-2xl shadow-sm border border-gray-100 inline-flex gap-1">
+                <div class="bg-white p-2 rounded-2xl shadow-sm border border-gray-100 inline-flex gap-1 overflow-x-auto max-w-full">
                     @foreach(['Todos', 'Comida', 'Bebidas', 'Postres'] as $cat)
-                        <a href="{{ route('mesero.index', ['categoria' => $cat]) }}" 
-                           class="px-8 py-2 rounded-xl font-bold transition {{ (request('categoria', 'Todos') == $cat) ? 'bg-gray-50 text-gray-900 shadow-sm' : 'bg-white text-gray-400 hover:text-orange-500' }}">
+                        <button type="button" 
+                                onclick="filtrarCategoriaAjax('{{ $cat }}')"
+                                id="btn-cat-{{ $cat }}"
+                                class="btn-categoria px-8 py-2 rounded-xl font-bold transition whitespace-nowrap 
+                                {{ $cat == 'Todos' ? 'bg-orange-500 text-white shadow-lg shadow-orange-100' : 'bg-white text-gray-400 hover:text-orange-500' }}">
                             {{ $cat }}
-                        </a>
+                        </button>
                     @endforeach
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    @foreach($productos as $producto)
-                        <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-xl hover:shadow-orange-50/50 transition-all duration-300">
-                            <div class="flex justify-between items-start mb-6">
-                                <div>
-                                    <span class="px-3 py-1 bg-gray-50 text-[10px] font-black text-gray-400 rounded-full uppercase tracking-tighter border border-gray-100">
-                                        {{ $producto->categoria }}
-                                    </span>
-                                    <h4 class="text-2xl font-bold mt-3 text-gray-900 leading-tight">{{ $producto->nombre }}</h4>
-                                    <p class="text-3xl font-black text-orange-600 mt-2">${{ number_format($producto->precio, 2) }}</p>
-                                </div>
-                                
-                                @if($producto->stock <= 0)
-                                    <span class="text-[10px] bg-red-50 text-red-500 px-3 py-1.5 rounded-full font-black uppercase ring-1 ring-red-100">
-                                        Agotado
-                                    </span>
-                                @endif
-                            </div>
-
-                            @if($producto->stock > 0)
-                                <form action="{{ route('carrito.agregar', $producto->id) }}" method="POST">
-                                    @csrf
-                                    <button type="submit" class="w-full bg-orange-500 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-orange-600 shadow-lg shadow-orange-100 active:scale-[0.98] transition-all">
-                                        <i data-lucide="plus" class="w-6 h-6"></i> Agregar
-                                    </button>
-                                </form>
-                            @else
-                                <button disabled class="w-full bg-orange-100/50 text-orange-200 font-black py-4 rounded-2xl flex items-center justify-center gap-2 cursor-not-allowed">
-                                    <i data-lucide="plus" class="w-6 h-6 text-white"></i> No Disponible
-                                </button>
-                            @endif
-                        </div>
-                    @endforeach
+                <div id="grid-productos" class="grid grid-cols-1 md:grid-cols-2 gap-6 relative min-h-[400px]">
+                    @include('mesero.partials.productos_grid')
                 </div>
             </div>
 
-           <aside class="sticky top-28">
-    <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-gray-50">
-        <h3 class="text-2xl font-black mb-8 flex items-center gap-3">
-            <i data-lucide="shopping-basket" class="text-orange-500 w-8 h-8"></i> Orden Actual
-        </h3>
+            <aside class="sticky top-28 lg:col-span-1">
+                <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-gray-50 relative overflow-hidden">
+                    <div id="carrito-loader" class="absolute inset-0 bg-white/50 z-10 flex items-center justify-center hidden">
+                        <i data-lucide="loader-2" class="w-8 h-8 text-orange-500 animate-spin"></i>
+                    </div>
 
-        <form action="#" method="POST" class="space-y-8">
-            @csrf
-            
-            <div class="space-y-5">
-                <div>
-                    <label class="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Tipo de Orden</label>
-                    <select id="tipo_orden" name="tipo_orden" class="w-full mt-2 bg-gray-50 border-transparent rounded-2xl p-4 font-bold focus:bg-white focus:ring-2 focus:ring-orange-500 outline-none transition-all">
-                        <option value="comer_aqui">Comer Aquí</option>
-                        <option value="para_llevar">Para Llevar</option>
-                    </select>
-                </div>
+                    <h3 class="text-2xl font-black mb-8 flex items-center gap-3">
+                        <i data-lucide="shopping-basket" class="text-orange-500 w-8 h-8"></i> Orden Actual
+                    </h3>
 
-                <div id="div_mesa">
-                    <label class="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Mesa</label>
-                    <select name="mesa_id" class="w-full mt-2 bg-gray-50 border-transparent rounded-2xl p-4 font-bold focus:bg-white focus:ring-2 focus:ring-orange-500 outline-none transition-all">
-                        <option value="">Selecciona una mesa</option>
-                        @for ($i = 1; $i <= 10; $i++)
-                            <option value="{{ $i }}">Mesa {{ $i }}</option>
-                        @endfor
-                    </select>
-                </div>
-
-                <div>
-                    <label class="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Nombre del Cliente (Opcional)</label>
-                    <input type="text" name="cliente" placeholder="Escribe el nombre aquí..." 
-                           class="w-full mt-2 bg-gray-50 border-transparent rounded-2xl p-4 font-bold focus:bg-white focus:ring-2 focus:ring-orange-500 outline-none transition-all placeholder:text-gray-300">
-                </div>
-            </div>
-
-            <div class="mt-8 space-y-4 border-t border-gray-100 pt-6">
-                @php $total = 0; @endphp
-                @forelse($carrito as $id => $item)
-                    @php $total += $item['precio'] * $item['cantidad']; @endphp
-                    <div class="flex justify-between items-center group">
-                        <div class="flex items-center gap-3">
-                            <span class="bg-orange-100 text-orange-600 px-2 py-1 rounded-lg text-xs font-black">{{ $item['cantidad'] }}x</span>
+                    <form action="{{ route('pedido.store') }}" method="POST" class="space-y-8">
+                        @csrf
+                        <div class="space-y-5">
                             <div>
-                                <p class="font-bold text-gray-800 text-sm">{{ $item['nombre'] }}</p>
-                                <p class="text-[10px] text-gray-400 font-bold uppercase">{{ $item['categoria'] }}</p>
+                                <label class="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Tipo de Orden</label>
+                                <select id="tipo_orden" name="tipo_orden" class="w-full mt-2 bg-gray-50 border-transparent rounded-2xl p-4 font-bold focus:bg-white focus:ring-2 focus:ring-orange-500 outline-none transition-all">
+                                    <option value="comer_aqui">Comer Aquí</option>
+                                    <option value="para_llevar">Para Llevar</option>
+                                </select>
+                            </div>
+
+                            <div id="div_mesa">
+                                <label class="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Mesa</label>
+                                <select name="mesa_id" class="w-full mt-2 bg-gray-50 border-transparent rounded-2xl p-4 font-bold focus:bg-white focus:ring-2 focus:ring-orange-500 outline-none transition-all">
+                                    <option value="">Selecciona una mesa</option>
+                                    @for ($i = 1; $i <= 10; $i++)
+                                        <option value="{{ $i }}">Mesa {{ $i }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Cliente <span class="text-red-500">*</span></label>
+                                <input type="text" name="cliente" placeholder="Nombre completo..." required 
+                                       class="w-full mt-2 bg-gray-50 border-transparent rounded-2xl p-4 font-bold focus:bg-white focus:ring-2 focus:ring-orange-500 outline-none transition-all placeholder:text-gray-300">
                             </div>
                         </div>
-                        <p class="font-black text-gray-900">${{ number_format($item['precio'] * $item['cantidad'], 2) }}</p>
-                    </div>
-                @empty
-                    <div class="py-10 flex flex-col items-center justify-center text-gray-300">
-                        <i data-lucide="shopping-cart" class="w-12 h-12 mb-4 opacity-10"></i>
-                        <p class="font-bold text-gray-400">Carrito vacío</p>
-                    </div>
-                @endforelse
-            </div>
 
-            @if($total > 0)
-            <div class="border-t-2 border-dashed border-gray-100 pt-6 flex justify-between items-end mb-4">
-                <span class="font-black text-gray-400 uppercase text-xs tracking-widest">Total a pagar</span>
-                <span class="text-3xl font-black text-gray-900">${{ number_format($total, 2) }}</span>
-            </div>
-            @endif
+                        <div id="carrito-items" class="mt-8 space-y-4 border-t border-gray-100 pt-6 max-h-96 overflow-y-auto">
+                            @include('mesero.partials.carrito_lista')
+                        </div>
 
-            <button type="submit" {{ $total == 0 ? 'disabled' : '' }} 
-                    class="w-full bg-orange-500 text-white font-black py-5 rounded-[1.5rem] hover:bg-orange-600 shadow-xl shadow-orange-100 transition-all flex items-center justify-center gap-2 uppercase tracking-tighter disabled:bg-gray-200 disabled:shadow-none disabled:cursor-not-allowed">
-                Enviar a Cocina
-            </button>
-        </form>
-    </div>
-</aside>
+                        <div id="carrito-total-container">
+                             @include('mesero.partials.carrito_total')
+                        </div>
+
+                        <button id="btn-submit-orden" type="submit" @if(empty($carrito)) disabled @endif 
+                                class="w-full bg-orange-600 text-white font-black py-5 rounded-[1.5rem] hover:bg-orange-700 shadow-xl shadow-orange-100 transition-all flex items-center justify-center gap-2 uppercase tracking-tighter disabled:bg-gray-200 disabled:shadow-none disabled:cursor-not-allowed">
+                            <i data-lucide="send" class="w-5 h-5"></i> Enviar a Cocina
+                        </button>
+                    </form>
+                </div>
+            </aside>
         </div>
     </main>
 
     <script>
         lucide.createIcons();
+        axios.defaults.headers.common['X-CSRF-TOKEN'] = '{{ csrf_token() }}';
 
-        const tipoOrdenSelect = document.getElementById('tipo_orden');
-        const divMesa = document.getElementById('div_mesa');
+        // --- FILTRADO DE CATEGORÍAS AJAX ---
+        function filtrarCategoriaAjax(categoria) {
+            const grid = document.getElementById('grid-productos');
+            grid.classList.add('opacity-50');
 
-        tipoOrdenSelect.addEventListener('change', function() {
-            if (this.value === 'para_llevar') {
-                divMesa.classList.add('hidden');
+            // Actualizar estilos de botones en tiempo real
+            document.querySelectorAll('.btn-categoria').forEach(btn => {
+                btn.classList.remove('bg-orange-500', 'text-white', 'shadow-lg', 'shadow-orange-100');
+                btn.classList.add('bg-white', 'text-gray-400');
+            });
+
+            // Pintamos el botón activo
+            const btnActivo = document.getElementById(`btn-cat-${categoria}`);
+            btnActivo.classList.remove('bg-white', 'text-gray-400');
+            btnActivo.classList.add('bg-orange-500', 'text-white', 'shadow-lg', 'shadow-orange-100');
+
+            axios.get('{{ route("mesero.index") }}', { 
+                params: { categoria: categoria },
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => {
+                grid.innerHTML = response.data;
+                lucide.createIcons();
+            })
+            .catch(error => console.error(error))
+            .finally(() => grid.classList.remove('opacity-50'));
+        }
+
+        // --- FUNCIONES DEL CARRITO ---
+        function agregarAlCarritoAjax(id) {
+            const loader = document.getElementById('carrito-loader');
+            loader.classList.remove('hidden');
+
+            axios.post('{{ route("carrito.agregar.ajax") }}', { id: id })
+                .then(response => {
+                    actualizarCarritoUI(response.data);
+                    showToast(response.data.message, 'success');
+                })
+                .catch(error => {
+                    showToast(error.response.data.error || 'Error al agregar', 'error');
+                })
+                .finally(() => loader.classList.add('hidden'));
+        }
+
+        function actualizarCantidadAjax(id, accion) {
+            axios.post('{{ route("carrito.actualizar.ajax") }}', { id: id, accion: accion })
+                .then(response => actualizarCarritoUI(response.data));
+        }
+
+        function eliminarDelCarritoAjax(id) {
+            axios.post('{{ route("carrito.eliminar.ajax") }}', { id: id })
+                .then(response => {
+                    actualizarCarritoUI(response.data);
+                    showToast('Producto eliminado', 'info');
+                });
+        }
+
+        function actualizarCarritoUI(data) {
+            const container = document.getElementById('carrito-items');
+            const totalContainer = document.getElementById('carrito-total-container');
+            const btnSubmit = document.getElementById('btn-submit-orden');
+            
+            let html = '';
+            if (Object.keys(data.carrito).length === 0) {
+                html = `<div class="py-10 text-center text-gray-400 font-bold">Orden vacía</div>`;
+                btnSubmit.disabled = true;
+                totalContainer.innerHTML = '';
             } else {
-                divMesa.classList.remove('hidden');
+                Object.values(data.carrito).forEach(item => {
+                    html += `
+                    <div class="flex flex-col bg-gray-50 p-4 rounded-2xl gap-3 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-bold text-gray-900 text-sm">${item.nombre}</p>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase">${item.categoria}</p>
+                            </div>
+                            <button type="button" onclick="eliminarDelCarritoAjax(${item.id})" class="text-gray-300 hover:text-red-500">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-2 bg-white rounded-full p-1 shadow-inner">
+                                <button type="button" onclick="actualizarCantidadAjax(${item.id}, 'decrementar')" class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-orange-500">
+                                    <i data-lucide="minus" class="w-4 h-4"></i>
+                                </button>
+                                <span class="font-black text-gray-900 text-sm w-5 text-center">${item.cantidad}</span>
+                                <button type="button" onclick="actualizarCantidadAjax(${item.id}, 'incrementar')" class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-orange-500" ${item.cantidad >= item.stock_max ? 'disabled' : ''}>
+                                    <i data-lucide="plus" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            <p class="font-black text-gray-950 text-base">$${(item.precio * item.cantidad).toFixed(2)}</p>
+                        </div>
+                    </div>`;
+                });
+                btnSubmit.disabled = false;
+                totalContainer.innerHTML = `
+                    <div class="border-t-2 border-dashed border-gray-100 mt-6 pt-6 flex justify-between items-end mb-4">
+                        <span class="font-black text-gray-400 uppercase text-xs">Subtotal</span>
+                        <span class="text-3xl font-black text-gray-900">$${data.total.toFixed(2)}</span>
+                    </div>`;
             }
-        });
+            container.innerHTML = html;
+            lucide.createIcons();
+        }
 
-        document.querySelectorAll('#toast-container > div').forEach(toast => {
+        function showToast(message, type) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bg = type === 'success' ? 'bg-[#011612]' : (type === 'error' ? 'bg-red-900' : 'bg-[#0D1B2A]');
+            const icon = type === 'success' ? 'check-circle' : (type === 'error' ? 'alert-circle' : 'info');
+            const color = type === 'success' ? 'text-green-400' : (type === 'error' ? 'text-red-400' : 'text-blue-400');
+            const border = type === 'success' ? 'border-green-500' : (type === 'error' ? 'border-red-500' : 'border-blue-500');
+
+            toast.className = `flex items-center p-4 text-white ${bg} rounded-xl shadow-lg border-l-4 ${border} animate-fade-in transition-all`;
+            toast.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5 mr-3 ${color}"></i><span class="text-sm font-medium">${message}</span>`;
+            
+            container.appendChild(toast);
+            lucide.createIcons();
             setTimeout(() => {
-                toast.classList.add('opacity-0', 'scale-95', 'transition-all', 'duration-500');
+                toast.classList.add('opacity-0', 'scale-95');
                 setTimeout(() => toast.remove(), 500);
             }, 4000);
+        }
+
+        // Mostrar/Ocultar mesa
+        document.getElementById('tipo_orden').addEventListener('change', function() {
+            document.getElementById('div_mesa').style.display = (this.value === 'para_llevar') ? 'none' : 'block';
         });
     </script>
 
     <style>
-        .animate-fade-in {
-            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
+        .animate-fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </body>
 </html>

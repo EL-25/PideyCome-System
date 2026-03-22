@@ -44,5 +44,17 @@
                 ENTRAR
             </button>
         </form>
-    </div> </body>
+    </div>
+
+    <script>
+        window.onpageshow = function(event) {
+            // Si el evento 'persisted' es true, significa que la página viene del historial (caché)
+            if (event.persisted) {
+                // Forzamos la recarga para obtener un token CSRF nuevo y válido
+                window.location.reload();
+            }
+        };
+    </script>
+
+</body>
 </html>
