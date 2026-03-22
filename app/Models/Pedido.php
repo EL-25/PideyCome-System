@@ -15,7 +15,8 @@ class Pedido extends Model
         'tipo_orden', 
         'mesa_id', 
         'estado', 
-        'total'
+        'total',
+        'notificacion_leida'
     ];
 
     /**

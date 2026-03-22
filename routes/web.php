@@ -12,16 +12,14 @@ use Illuminate\Support\Facades\Route;
 */
 
 // --- Rutas Públicas ---
-// La raíz muestra el login directamente
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// --- Rutas Protegidas (Requieren estar autenticado) ---
+// --- Rutas Protegidas ---
 Route::middleware(['auth'])->group(function () {
     
     // --- ÁREA DE MESERO ---
-    // URL Base: /mesero
     Route::prefix('mesero')->group(function () {
         Route::get('/', [MeseroController::class, 'index'])->name('mesero.index');
         Route::get('/mis-ordenes', [MeseroController::class, 'misOrdenes'])->name('mesero.ordenes');
@@ -29,23 +27,23 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // --- ÁREA DE COCINA ---
-    // URL Base: /cocina (Ya no requiere /dashboard al final)
     Route::prefix('cocina')->group(function () {
         Route::get('/', [CocinaController::class, 'index'])->name('cocina.index');
         
-        // Acción para que el cocinero cambie el estado del pedido
+        // Esta es la ruta que llama el botón "Recibir/Preparar/Despachar" vía AJAX
         Route::post('/avanzar/{id}', [CocinaController::class, 'avanzarEstado'])->name('cocina.avanzar');
     });
 
-    // --- CARRITO AJAX (Funciones compartidas del sistema de pedidos) ---
+    // --- CARRITO AJAX ---
     Route::prefix('carrito')->group(function () {
-        Route::post('/agregar', [MeseroController::class, 'agregarAjax'])->name('carrito.agregar.ajax');
-        Route::post('/actualizar', [MeseroController::class, 'actualizarCantidadAjax'])->name('carrito.actualizar.ajax');
-        Route::post('/eliminar', [MeseroController::class, 'eliminarAjax'])->name('carrito.eliminar.ajax');
+        // Asegúrate de que estos nombres coincidan con los que usas en el JS del Mesero
+        Route::post('/agregar-ajax', [MeseroController::class, 'agregarAjax'])->name('carrito.agregar.ajax');
+        Route::post('/actualizar-ajax', [MeseroController::class, 'actualizarCantidadAjax'])->name('carrito.actualizar.ajax');
+        Route::post('/eliminar-ajax', [MeseroController::class, 'eliminarAjax'])->name('carrito.eliminar.ajax');
         Route::post('/limpiar', [MeseroController::class, 'limpiar'])->name('mesero.limpiar');
     });
 
-    // --- OTRAS RUTAS (Futuras implementaciones) ---
+    // --- DASHBOARDS ADMINISTRATIVOS ---
     Route::get('/admin/dashboard', function () { 
         return "Panel de Administrador - Próximamente"; 
     })->name('admin.index');

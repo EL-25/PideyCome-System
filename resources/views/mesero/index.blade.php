@@ -49,7 +49,6 @@
             </div>
 
             <div class="flex items-center gap-6">
-                {{-- Campanita de Notificaciones --}}
                 <a href="{{ route('mesero.ordenes') }}" class="relative group cursor-pointer">
                     <i data-lucide="bell" class="w-6 h-6 text-gray-400 group-hover:text-orange-500 transition-colors"></i>
                     @if(isset($notificacionesCount) && $notificacionesCount > 0)
@@ -164,20 +163,10 @@
 
     <script>
         lucide.createIcons();
+        
+        // Configuración global de Axios para evitar errores 419 en Railway
+        axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
         axios.defaults.headers.common['X-CSRF-TOKEN'] = '{{ csrf_token() }}';
-
-        // --- REFRESCAR NOTIFICACIONES CADA 30 SEGUNDOS ---
-        setInterval(function() {
-            const inputCliente = document.getElementById('input_cliente');
-            const carritoItems = document.getElementById('carrito-items');
-            
-            // Solo recarga si el mesero no está escribiendo y el carrito no tiene cosas críticas
-            // O si simplemente quieres que la campanita se actualice
-            if (document.activeElement !== inputCliente) {
-                console.log('Sincronizando órdenes listas...');
-                window.location.reload();
-            }
-        }, 30000);
 
         // --- FILTRADO DE CATEGORÍAS AJAX ---
         function filtrarCategoriaAjax(categoria) {
@@ -190,18 +179,19 @@
             });
 
             const btnActivo = document.getElementById(`btn-cat-${categoria}`);
-            btnActivo.classList.remove('bg-white', 'text-gray-400');
-            btnActivo.classList.add('bg-orange-500', 'text-white', 'shadow-lg', 'shadow-orange-100');
+            if(btnActivo) {
+                btnActivo.classList.remove('bg-white', 'text-gray-400');
+                btnActivo.classList.add('bg-orange-500', 'text-white', 'shadow-lg', 'shadow-orange-100');
+            }
 
             axios.get('{{ route("mesero.index") }}', { 
-                params: { categoria: categoria },
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                params: { categoria: categoria }
             })
             .then(response => {
                 grid.innerHTML = response.data;
                 lucide.createIcons();
             })
-            .catch(error => console.error(error))
+            .catch(error => console.error('Error al filtrar:', error))
             .finally(() => grid.classList.remove('opacity-50'));
         }
 
@@ -213,17 +203,20 @@
             axios.post('{{ route("carrito.agregar.ajax") }}', { id: id })
                 .then(response => {
                     actualizarCarritoUI(response.data);
-                    showToast(response.data.message, 'success');
+                    showToast(response.data.message || 'Producto agregado', 'success');
                 })
                 .catch(error => {
-                    showToast(error.response.data.error || 'Error al agregar', 'error');
+                    console.error(error);
+                    let msg = error.response?.data?.error || 'Error al agregar';
+                    showToast(msg, 'error');
                 })
                 .finally(() => loader.classList.add('hidden'));
         }
 
         function actualizarCantidadAjax(id, accion) {
             axios.post('{{ route("carrito.actualizar.ajax") }}', { id: id, accion: accion })
-                .then(response => actualizarCarritoUI(response.data));
+                .then(response => actualizarCarritoUI(response.data))
+                .catch(error => console.error('Error al actualizar:', error));
         }
 
         function eliminarDelCarritoAjax(id) {
@@ -231,7 +224,8 @@
                 .then(response => {
                     actualizarCarritoUI(response.data);
                     showToast('Producto eliminado', 'info');
-                });
+                })
+                .catch(error => console.error('Error al eliminar:', error));
         }
 
         function actualizarCarritoUI(data) {
@@ -240,7 +234,7 @@
             const btnSubmit = document.getElementById('btn-submit-orden');
             
             let html = '';
-            if (Object.keys(data.carrito).length === 0) {
+            if (!data.carrito || Object.keys(data.carrito).length === 0) {
                 html = `<div class="py-10 text-center text-gray-400 font-bold">Orden vacía</div>`;
                 btnSubmit.disabled = true;
                 totalContainer.innerHTML = '';
