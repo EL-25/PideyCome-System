@@ -84,11 +84,11 @@
             .finally(() => container.classList.remove('opacity-50'));
         }
 
-        // Auto-actualización cada 30 segundos para ver cambios de cocina
+        // Auto-actualización cada 5 segundos para ver cambios de cocina en tiempo real
         setInterval(() => {
             const mesaActual = document.getElementById('filtro-mesa').value;
             filtrarPorMesaAjax(mesaActual);
-        }, 30000);
+        }, 5000);
     </script>
 </body>
 </html>

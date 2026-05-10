@@ -180,4 +180,34 @@ class MeseroController extends Controller
         session()->forget('carrito');
         return redirect()->route('mesero.index')->with('success', 'Orden limpiada correctamente.');
     }
+
+    /**
+     * Consulta si una mesa tiene una cuenta activa y quién es el cliente.
+     */
+    public function checkMesaStatus($mesa_id)
+    {
+        $pedidoActivo = Pedido::where('mesa_id', $mesa_id)
+            ->where('estado', '!=', 'pagado')
+            ->first();
+
+        if ($pedidoActivo) {
+            return response()->json([
+                'ocupada' => true,
+                'cliente' => $pedidoActivo->cliente
+            ]);
+        }
+
+        return response()->json(['ocupada' => false]);
+    }
+
+    /**
+     * Marca un pedido como entregado (quita la notificación del mesero).
+     */
+    public function entregar($id)
+    {
+        $pedido = Pedido::findOrFail($id);
+        $pedido->update(['notificacion_leida' => true]);
+        
+        return back()->with('success', '¡Orden entregada a la mesa!');
+    }
 }

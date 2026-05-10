@@ -20,25 +20,39 @@
         </div>
 
         <div class="space-y-3 mb-8">
-            <p class="text-[11px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 pb-2">Pedido:</p>
+            <div class="flex justify-between items-center border-b border-gray-50 pb-2">
+                <p class="text-[11px] font-black text-gray-400 uppercase tracking-widest">Pedido:</p>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md {{ $pedido->bg_color }} text-white uppercase tracking-tighter">
+                    {{ $pedido->estado_label }}
+                </span>
+            </div>
             @foreach($pedido->detalles as $detalle)
                 <div class="flex justify-between items-center">
                     <div class="flex items-center gap-2">
-                        <span class="bg-orange-500/10 text-orange-600 font-black text-xs px-2 py-0.5 rounded-lg">
+                        <span class="bg-gray-100 text-gray-700 font-black text-xs px-2 py-0.5 rounded-lg">
                             {{ $detalle->cantidad }}
                         </span>
-                        <span class="text-sm font-bold text-gray-700">{{ $detalle->producto->nombre ?? 'Producto no encontrado' }}</span>
+                        <span class="text-sm font-bold text-gray-700">{{ $detalle->producto_nombre }}</span>
                     </div>
                 </div>
             @endforeach
         </div>
 
-        <form action="{{ route('cocina.despachar', $pedido->id) }}" method="POST">
-            @csrf
-            @method('PATCH') <button type="submit" class="w-full bg-[#011612] text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-green-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-100">
-                <i data-lucide="chef-hat" class="w-4 h-4"></i> Despachar Orden
-            </button>
-        </form>
+        @php
+            $configBoton = match($pedido->estado) {
+                'ordenada'   => ['texto' => 'Recibir Orden', 'color' => 'bg-blue-600', 'icon' => 'check-circle'],
+                'recibida'   => ['texto' => 'Empezar Preparación', 'color' => 'bg-orange-500', 'icon' => 'flame'],
+                'preparando' => ['texto' => 'Marcar como Lista', 'color' => 'bg-emerald-600', 'icon' => 'check-check'],
+                default      => ['texto' => 'Finalizar', 'color' => 'bg-gray-800', 'icon' => 'check'],
+            };
+        @endphp
+
+        <button type="button" 
+                onclick="avanzarEstado({{ $pedido->id }})"
+                id="btn-avanzar-{{ $pedido->id }}"
+                class="w-full {{ $configBoton['color'] }} text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-gray-200">
+            {{ $configBoton['texto'] }}
+        </button>
     </div>
 @empty
     <div class="col-span-full flex flex-col items-center justify-center py-20 text-gray-400">

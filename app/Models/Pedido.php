@@ -16,7 +16,9 @@ class Pedido extends Model
         'mesa_id', 
         'estado', 
         'total',
-        'notificacion_leida'
+        'notificacion_leida',
+        'metodo_pago',
+        'cajera_id'
     ];
 
     /**
@@ -30,6 +32,7 @@ class Pedido extends Model
             'recibida'   => 'bg-blue-500',   // Azul
             'preparando' => 'bg-orange-500', // Naranja
             'despachada' => 'bg-green-500',  // Verde
+            'pagado'     => 'bg-gray-800',   // Negro/Gris Oscuro
             default      => 'bg-gray-500',
         };
     }
@@ -44,6 +47,7 @@ class Pedido extends Model
             'recibida'   => 'Recibida por Cocina',
             'preparando' => 'Preparando',
             'despachada' => 'Despachada',
+            'pagado'     => 'Pagado/Cerrado',
             default      => 'Desconocido',
         };
     }

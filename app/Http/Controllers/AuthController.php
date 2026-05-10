@@ -28,15 +28,21 @@ class AuthController extends Controller
         // Intentamos iniciar sesión
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
+            $user = Auth::user();
+
+            // Si tiene contraseña temporal, lo mandamos a cambiarla
+            if ($user->temp_passwd) {
+                return redirect()->route('password.change');
+            }
 
             // Redirección inteligente por ROL
-            $role = Auth::user()->role;
+            $role = $user->role;
             
             // ACTUALIZADO: Usamos route() para que coincida con web.php
             return match($role) {
                 'admin'   => redirect()->route('admin.index'),
                 'mesero'  => redirect()->route('mesero.index'),
-                'cocina'  => redirect()->route('cocina.index'), // Antes decía /cocina/dashboard
+                'cocina'  => redirect()->route('cocina.index'),
                 'cajera'  => redirect()->route('cajera.index'),
                 default   => redirect('/'),
             };
@@ -48,7 +54,29 @@ class AuthController extends Controller
         ])->withInput();
     }
 
-    // 3. Cerrar sesión
+    // 3. Mostrar vista de cambio de contraseña
+    public function showChangePassword()
+    {
+        return view('auth.change-password');
+    }
+
+    // 4. Procesar el cambio de contraseña
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|string|min:4|confirmed',
+        ]);
+
+        $user = Auth::user();
+        $user->password = bcrypt($request->password);
+        $user->temp_passwd = 0; // Ya no es temporal
+        $user->save();
+
+        Auth::logout();
+        return redirect()->route('login')->with('success', 'Contraseña actualizada. Inicia sesión con tus nuevos datos.');
+    }
+
+    // 5. Cerrar sesión
     public function logout(Request $request)
     {
         Auth::logout();

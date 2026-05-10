@@ -14,8 +14,9 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('username')->unique(); // Para mesero1, admin, etc.
+            $table->string('username', 100)->unique(); // Para mesero1, admin, etc.
             $table->string('password');
+            $table->boolean('temp_passwd')->default(false); // 1 = Temporal, 0 = Normal
             // Definimos los roles exactos del prompt
             $table->enum('role', ['admin', 'mesero', 'cocina', 'cajera'])->default('mesero');
             $table->rememberToken();

@@ -13,7 +13,7 @@ class CocinaController extends Controller
 
         // Cargamos relaciones para evitar errores de "propiedad no encontrada"
         // CORRECTO: Usamos 'mesero' porque así se llama la función en el modelo
-        $query = Pedido::with(['detalles.producto', 'mesero'])
+        $query = Pedido::with(['detalles', 'mesero'])
                        ->where('estado', '!=', 'despachada')
                        ->orderBy('created_at', 'asc');
 

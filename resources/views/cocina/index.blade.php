@@ -9,8 +9,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes bounceIn { 
+            0% { opacity: 0; transform: translateY(-50px) scale(0.3); } 
+            70% { opacity: 1; transform: translateY(5px) scale(1.05); } 
+            100% { opacity: 1; transform: translateY(0) scale(1); } 
+        }
     </style>
 </head>
 <body class="bg-[#F8F9FA]">
@@ -87,7 +91,7 @@
             const btn = document.getElementById(`btn-avanzar-${pedidoId}`);
             if(btn) btn.disabled = true;
 
-            axios.post(`/cocina/avanzar/${pedidoId}`)
+            axios.patch(`/cocina/despachar/${pedidoId}`)
                 .then(response => {
                     showToast(response.data.message || 'Estado actualizado', 'success');
                     // Actualizamos la vista sin recargar
@@ -128,8 +132,8 @@
             }, 3000);
         }
 
-        // Sincronización silenciosa cada 30 segundos (Sin recargar la página)
-        setInterval(recargarGrid, 30000);
+        // Sincronización silenciosa cada 5 segundos para que parezca tiempo real
+        setInterval(recargarGrid, 5000);
     </script>
 </body>
 </html>

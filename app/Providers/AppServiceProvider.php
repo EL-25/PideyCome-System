@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Pedido;
+use Illuminate\Support\Facades\Schema;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +24,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Schema::defaultStringLength(191);
+        
         // 1. FORZAR HTTPS EN RAILWAY
         // Esto evita el "Network Error" de Axios al intentar mezclar HTTP con HTTPS
         if (config('app.env') === 'production' || env('RAILWAY_ENVIRONMENT')) {

@@ -129,7 +129,7 @@
 
                             <div id="div_mesa">
                                 <label class="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Mesa</label>
-                                <select name="mesa_id" class="w-full mt-2 bg-gray-50 border-transparent rounded-2xl p-4 font-bold focus:bg-white focus:ring-2 focus:ring-orange-500 outline-none transition-all">
+                                <select id="select_mesa" name="mesa_id" class="w-full mt-2 bg-gray-50 border-transparent rounded-2xl p-4 font-bold focus:bg-white focus:ring-2 focus:ring-orange-500 outline-none transition-all">
                                     <option value="">Selecciona una mesa</option>
                                     @for ($i = 1; $i <= 10; $i++)
                                         <option value="{{ $i }}">Mesa {{ $i }}</option>
@@ -299,6 +299,33 @@
 
         document.getElementById('tipo_orden').addEventListener('change', function() {
             document.getElementById('div_mesa').style.display = (this.value === 'para_llevar') ? 'none' : 'block';
+        });
+
+        // --- VERIFICAR ESTADO DE LA MESA ---
+        document.getElementById('select_mesa').addEventListener('change', function() {
+            const mesaId = this.value;
+            const inputCliente = document.getElementById('input_cliente');
+            
+            if (!mesaId) {
+                inputCliente.value = '';
+                inputCliente.readOnly = false;
+                return;
+            }
+
+            axios.get(`/mesero/mesa-status/${mesaId}`)
+                .then(response => {
+                    if (response.data.ocupada) {
+                        inputCliente.value = response.data.cliente;
+                        inputCliente.readOnly = true;
+                        inputCliente.classList.add('bg-gray-100', 'text-gray-500');
+                        showToast(`Mesa ocupada por ${response.data.cliente}`, 'info');
+                    } else {
+                        inputCliente.value = '';
+                        inputCliente.readOnly = false;
+                        inputCliente.classList.remove('bg-gray-100', 'text-gray-500');
+                    }
+                })
+                .catch(error => console.error('Error al verificar mesa:', error));
         });
     </script>
 

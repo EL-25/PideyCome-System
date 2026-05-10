@@ -47,13 +47,16 @@
         </div>
 
         {{-- Botón de Acción Final: Solo aparece cuando cocina termina --}}
-        @if($orden->estado == 'despachada')
-            <button class="w-full mt-5 bg-green-600 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-green-700 transition-all shadow-lg shadow-green-100 active:scale-95">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg> 
-                ENTREGAR A MESA
-            </button>
+        @if($orden->estado == 'despachada' && !$orden->notificacion_leida)
+            <form action="{{ route('mesero.entregar', $orden->id) }}" method="POST" class="mt-5">
+                @csrf
+                <button type="submit" class="w-full bg-green-600 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-green-700 transition-all shadow-lg shadow-green-100 active:scale-95">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg> 
+                    ENTREGAR A MESA
+                </button>
+            </form>
         @endif
     </div>
 @empty
