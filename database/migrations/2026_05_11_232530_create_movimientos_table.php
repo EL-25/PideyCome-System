@@ -11,14 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('movimientos', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('tipo'); // producto, usuario, inventario
-            $table->string('accion'); // creación, edición, eliminación, ajuste
-            $table->text('descripcion');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('movimientos')) {
+            Schema::create('movimientos', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
+                $table->string('tipo'); // producto, usuario, inventario
+                $table->string('accion'); // creación, edición, eliminación, ajuste
+                $table->text('descripcion');
+                $table->timestamps();
+            });
+        }
     }
 
     /**
