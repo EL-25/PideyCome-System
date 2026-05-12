@@ -12,8 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('pedidos', function (Blueprint $table) {
-            $table->string('tipo_comprobante')->default('ticket')->after('metodo_pago');
-            $table->string('cliente_email')->nullable()->after('tipo_comprobante');
+            // Agregamos las columnas faltantes que no estaban en migraciones anteriores
+            $table->string('metodo_pago')->nullable();
+            $table->foreignId('cajera_id')->nullable()->constrained('users');
+            
+            // Detalles de facturación
+            $table->string('tipo_comprobante')->default('ticket');
+            $table->string('cliente_email')->nullable();
         });
     }
 
@@ -23,7 +28,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('pedidos', function (Blueprint $table) {
-            $table->dropColumn(['tipo_comprobante', 'cliente_email']);
+            $table->dropForeign(['cajera_id']);
+            $table->dropColumn(['tipo_comprobante', 'cliente_email', 'metodo_pago', 'cajera_id']);
         });
     }
 };
