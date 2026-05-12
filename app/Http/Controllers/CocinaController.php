@@ -14,7 +14,7 @@ class CocinaController extends Controller
         // Cargamos relaciones para evitar errores de "propiedad no encontrada"
         // CORRECTO: Usamos 'mesero' porque así se llama la función en el modelo
         $query = Pedido::with(['detalles', 'mesero'])
-                       ->where('estado', '!=', 'despachada')
+                       ->whereNotIn('estado', ['despachada', 'pagado', 'por_cobrar'])
                        ->orderBy('created_at', 'asc');
 
         if ($tab === 'nuevas') {
@@ -71,6 +71,25 @@ class CocinaController extends Controller
         }
 
         return back()->with('success', $mensaje);
+    }
+
+    /**
+     * Limpia pedidos que no tienen estado (fueron creados a medias o error de db)
+     */
+    public function limpiarSinEstado()
+    {
+        $query = Pedido::whereNull('estado')
+                       ->orWhere('estado', '')
+                       ->orWhere('estado', 'pagado');
+        
+        $count = $query->count();
+        
+        if ($count > 0) {
+            $query->delete();
+            return back()->with('success', "Se limpiaron {$count} registros (vacíos o pagados).");
+        }
+
+        return back()->with('success', 'No se encontraron registros para limpiar.');
     }
 
     private function obtenerLabel($estado)

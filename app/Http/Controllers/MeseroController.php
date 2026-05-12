@@ -23,15 +23,18 @@ class MeseroController extends Controller
         $productos = $query->get();
         $carrito = session()->get('carrito', []);
 
-        if ($request->ajax()) {
-            return view('mesero.partials.productos_grid', compact('productos'))->render();
-        }
-
         // Lógica de notificaciones para el mesero
         $notificacionesCount = Pedido::where('user_id', Auth::id())
             ->where('estado', 'despachada') 
             ->where('notificacion_leida', false)
             ->count();
+
+        if ($request->ajax()) {
+            if ($request->has('check_notifications')) {
+                return response()->json(['count' => $notificacionesCount]);
+            }
+            return view('mesero.partials.productos_grid', compact('productos'))->render();
+        }
 
         return view('mesero.index', compact('productos', 'carrito', 'notificacionesCount'));
     }
@@ -203,11 +206,33 @@ class MeseroController extends Controller
     /**
      * Marca un pedido como entregado (quita la notificación del mesero).
      */
+    /**
+     * Marca un pedido como entregado (quita la notificación del mesero).
+     */
     public function entregar($id)
     {
         $pedido = Pedido::findOrFail($id);
         $pedido->update(['notificacion_leida' => true]);
         
         return back()->with('success', '¡Orden entregada a la mesa!');
+    }
+
+    /**
+     * Marca todas las órdenes de una mesa como "por_cobrar" para que aparezcan en caja.
+     */
+    public function solicitarCuenta($mesa_id)
+    {
+        // Si es para llevar, el ID es diferente
+        if (str_starts_with($mesa_id, 'Llevar-')) {
+            $id = str_replace('Llevar-', '', $mesa_id);
+            Pedido::where('id', $id)->update(['estado' => 'por_cobrar']);
+        } else {
+            // Buscamos órdenes de esa mesa que no estén pagadas ni ya solicitadas
+            Pedido::where('mesa_id', $mesa_id)
+                ->where('estado', 'despachada')
+                ->update(['estado' => 'por_cobrar']);
+        }
+
+        return back()->with('success', '¡Cuenta enviada a caja exitosamente!');
     }
 }

@@ -46,15 +46,22 @@
             </span>
         </div>
 
-        {{-- Botón de Acción Final: Solo aparece cuando cocina termina --}}
+        {{-- Botón de Acción Final: Entregar --}}
         @if($orden->estado == 'despachada' && !$orden->notificacion_leida)
-            <form action="{{ route('mesero.entregar', $orden->id) }}" method="POST" class="mt-5">
+            <form action="{{ route('mesero.entregar', $orden->id) }}" method="POST" class="mt-4">
                 @csrf
-                <button type="submit" class="w-full bg-green-600 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-green-700 transition-all shadow-lg shadow-green-100 active:scale-95">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg> 
-                    ENTREGAR A MESA
+                <button type="submit" class="w-full bg-green-600 text-white font-black py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-green-700 transition-all shadow-lg shadow-green-100 active:scale-95 text-xs uppercase">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i> ENTREGAR A MESA
+                </button>
+            </form>
+        @endif
+
+        {{-- Botón de Enviar a Caja (Para Llevar o Mesa Individual) --}}
+        @if($orden->estado == 'despachada' && $orden->notificacion_leida)
+            <form action="{{ route('mesero.solicitar_cuenta', $orden->mesa_id ?? 'Llevar-'.$orden->id) }}" method="POST" class="mt-2">
+                @csrf
+                <button type="submit" class="w-full bg-gray-900 text-white font-black py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-black transition-all shadow-lg shadow-gray-100 active:scale-95 text-xs uppercase tracking-widest">
+                    <i data-lucide="send" class="w-4 h-4"></i> ENVIAR A CAJA
                 </button>
             </form>
         @endif

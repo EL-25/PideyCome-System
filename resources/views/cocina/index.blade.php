@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PideYCome - Panel de Cocina</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
@@ -21,26 +23,26 @@
 
     <div id="toast-container" class="fixed top-5 right-5 z-[100] space-y-3 w-80"></div>
 
-    <nav class="bg-white border-b border-gray-100 py-4 mb-6 sticky top-0 z-50">
+    <nav class="bg-white border-b border-gray-100 py-4 mb-6 sticky top-0 z-50 shadow-sm" x-data="{ mobileMenu: false }">
         <div class="container mx-auto px-4 flex justify-between items-center">
             <div class="flex items-center gap-2">
-                <span class="bg-orange-500 text-white p-2 rounded-lg font-black shadow-md shadow-orange-100">PYC</span>
-                <span class="font-bold text-gray-800 uppercase tracking-wider text-sm">Panel Cocina</span>
+                <div class="bg-orange-500 text-white p-2 rounded-lg font-black shadow-md shadow-orange-100">
+                    <i data-lucide="chef-hat" class="w-5 h-5"></i>
+                </div>
+                <span class="font-bold text-gray-800 uppercase tracking-wider text-xs md:text-sm">Panel Cocina</span>
             </div>
             <div class="flex items-center gap-4">
-                <div id="sync-indicator" class="flex items-center gap-2 text-[10px] font-bold text-green-500 uppercase">
+                <div id="sync-indicator" class="hidden md:flex items-center gap-2 text-[10px] font-bold text-green-500 uppercase">
                     <span class="relative flex h-2 w-2">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                     </span>
-                    En línea
+                    En vivo
                 </div>
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf
                     <button type="submit" class="text-gray-400 hover:text-red-500 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
+                        <i data-lucide="log-out" class="w-5 h-5"></i>
                     </button>
                 </form>
             </div>
@@ -62,18 +64,27 @@
                 </div>
             </div>
             
-            <nav class="flex space-x-2 bg-gray-200 p-1 rounded-xl mt-4 md:mt-0">
-                @php 
-                    $currentTab = request('tab', 'todas');
-                    $tabs = ['todas' => 'Todas', 'nuevas' => 'Nuevas', 'recibidas' => 'Recibidas', 'preparando' => 'En Preparación']; 
-                @endphp
-                @foreach($tabs as $key => $label)
-                    <a href="{{ route('cocina.index', ['tab' => $key]) }}" 
-                       class="px-4 py-2 rounded-lg text-[12px] font-bold uppercase transition-all {{ $currentTab == $key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900' }}">
-                        {{ $label }}
-                    </a>
-                @endforeach
-            </nav>
+            <div class="flex items-center gap-4 mt-4 md:mt-0">
+                <nav class="flex space-x-2 bg-gray-200 p-1 rounded-xl">
+                    @php 
+                        $currentTab = request('tab', 'todas');
+                        $tabs = ['todas' => 'Todas', 'nuevas' => 'Nuevas', 'recibidas' => 'Recibidas', 'preparando' => 'En Preparación']; 
+                    @endphp
+                    @foreach($tabs as $key => $label)
+                        <a href="{{ route('cocina.index', ['tab' => $key]) }}" 
+                           class="px-4 py-2 rounded-lg text-[12px] font-bold uppercase transition-all {{ $currentTab == $key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900' }}">
+                            {{ $label }}
+                        </a>
+                    @endforeach
+                </nav>
+
+                <form action="{{ route('cocina.limpiar') }}" method="POST" onsubmit="return confirm('¿Deseas eliminar permanentemente los registros que no tienen estado?')">
+                    @csrf
+                    <button type="submit" class="p-2.5 bg-white border border-gray-200 rounded-xl text-gray-400 hover:text-red-500 hover:border-red-200 transition-all shadow-sm" title="Limpiar registros sin estado">
+                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                    </button>
+                </form>
+            </div>
         </div>
 
         {{-- Grid de Pedidos --}}
@@ -133,7 +144,8 @@
         }
 
         // Sincronización silenciosa cada 5 segundos para que parezca tiempo real
-        setInterval(recargarGrid, 5000);
+        setInterval(recargarGrid, 5000); // Sincronización cada 5 segundos
+        lucide.createIcons();
     </script>
 </body>
 </html>

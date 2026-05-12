@@ -43,16 +43,22 @@
                 'ordenada'   => ['texto' => 'Recibir Orden', 'color' => 'bg-blue-600', 'icon' => 'check-circle'],
                 'recibida'   => ['texto' => 'Empezar Preparación', 'color' => 'bg-orange-500', 'icon' => 'flame'],
                 'preparando' => ['texto' => 'Marcar como Lista', 'color' => 'bg-emerald-600', 'icon' => 'check-check'],
-                default      => ['texto' => 'Finalizar', 'color' => 'bg-gray-800', 'icon' => 'check'],
+                default      => null,
             };
         @endphp
 
-        <button type="button" 
-                onclick="avanzarEstado({{ $pedido->id }})"
-                id="btn-avanzar-{{ $pedido->id }}"
-                class="w-full {{ $configBoton['color'] }} text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-gray-200">
-            {{ $configBoton['texto'] }}
-        </button>
+        @if($configBoton)
+            <button type="button" 
+                    onclick="avanzarEstado({{ $pedido->id }})"
+                    id="btn-avanzar-{{ $pedido->id }}"
+                    class="w-full {{ $configBoton['color'] }} text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-gray-200">
+                {{ $configBoton['texto'] }}
+            </button>
+        @else
+            <div class="w-full bg-emerald-50 text-emerald-600 py-3 rounded-2xl font-black text-xs uppercase tracking-widest text-center border border-emerald-100 flex items-center justify-center gap-2">
+                <i data-lucide="check" class="w-4 h-4"></i> Lista para entregar
+            </div>
+        @endif
     </div>
 @empty
     <div class="col-span-full flex flex-col items-center justify-center py-20 text-gray-400">

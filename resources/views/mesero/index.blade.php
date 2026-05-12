@@ -8,35 +8,40 @@
     <title>PideYCome - Panel del Mesero</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body class="bg-[#F8F9FA] text-gray-800 font-sans">
 
-    <div id="toast-container" class="fixed top-5 right-5 z-[100] space-y-3 w-80">
-        @if(session('info'))
-            <div class="flex items-center p-4 text-white bg-[#0D1B2A] rounded-xl shadow-lg border-l-4 border-blue-500 animate-fade-in">
-                <i data-lucide="info" class="w-5 h-5 mr-3 text-blue-400"></i>
-                <span class="text-sm font-medium">{{ session('info') }}</span>
-            </div>
-        @endif
-        @if(session('success'))
-            <div class="flex items-center p-4 text-white bg-[#011612] rounded-xl shadow-lg border-l-4 border-green-500 animate-fade-in">
-                <i data-lucide="check-circle" class="w-5 h-5 mr-3 text-green-400"></i>
-                <span class="text-sm font-medium">{{ session('success') }}</span>
+    <div id="toast-container" class="fixed top-5 right-5 z-[100] space-y-3 w-full max-w-[320px] px-4">
+        @if(session('info') || session('success'))
+            <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)" class="transition-all duration-500">
+                @if(session('info'))
+                    <div class="flex items-center p-4 text-white bg-[#0D1B2A] rounded-xl shadow-lg border-l-4 border-blue-500 animate-fade-in mb-3">
+                        <i data-lucide="info" class="w-5 h-5 mr-3 text-blue-400"></i>
+                        <span class="text-sm font-medium">{{ session('info') }}</span>
+                    </div>
+                @endif
+                @if(session('success'))
+                    <div class="flex items-center p-4 text-white bg-[#011612] rounded-xl shadow-lg border-l-4 border-green-500 animate-fade-in">
+                        <i data-lucide="check-circle" class="w-5 h-5 mr-3 text-green-400"></i>
+                        <span class="text-sm font-medium">{{ session('success') }}</span>
+                    </div>
+                @endif
             </div>
         @endif
     </div>
 
-    <nav class="bg-white border-b border-gray-100 p-4 sticky top-0 z-50">
+    <nav class="bg-white border-b border-gray-100 p-4 sticky top-0 z-50 shadow-sm" x-data="{ mobileMenu: false }">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-8">
+            <div class="flex items-center gap-4 md:gap-8">
                 <div class="flex items-center gap-3">
                     <div class="bg-orange-500 p-2 rounded-lg shadow-md shadow-orange-200">
                         <i data-lucide="utensils" class="text-white w-5 h-5"></i>
                     </div>
                     <div>
-                        <h1 class="font-bold text-gray-900 leading-none">PideYCome</h1>
-                        <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{{ Auth::user()->name }} - Mesero</span>
+                        <h1 class="font-bold text-gray-900 leading-none text-sm md:text-base">Restaurante UDB</h1>
+                        <span class="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-wider">{{ Auth::user()->name }} - Mesero</span>
                     </div>
                 </div>
 
@@ -50,23 +55,38 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-6">
+            <div class="flex items-center gap-4 md:gap-6">
                 <a href="{{ route('mesero.ordenes') }}" class="relative group cursor-pointer">
                     <i data-lucide="bell" class="w-6 h-6 text-gray-400 group-hover:text-orange-500 transition-colors"></i>
-                    @if(isset($notificacionesCount) && $notificacionesCount > 0)
-                        <span class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white animate-bounce shadow-sm">
-                            {{ $notificacionesCount }}
-                        </span>
-                    @endif
+                    <span id="notif-badge" class="{{ (isset($notificacionesCount) && $notificacionesCount > 0) ? '' : 'hidden' }} absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white animate-bounce shadow-sm">
+                        {{ $notificacionesCount ?? 0 }}
+                    </span>
                 </a>
 
-                <form action="{{ route('logout') }}" method="POST">
+                <button @click="mobileMenu = !mobileMenu" class="md:hidden text-gray-400">
+                    <i data-lucide="menu" x-show="!mobileMenu"></i>
+                    <i data-lucide="x" x-show="mobileMenu"></i>
+                </button>
+
+                <form action="{{ route('logout') }}" method="POST" class="hidden md:block">
                     @csrf
                     <button type="submit" class="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-red-600 transition">
                         <i data-lucide="log-out" class="w-4 h-4"></i> Salir
                     </button>
                 </form>
             </div>
+        </div>
+
+        <!-- Mobile Nav -->
+        <div x-show="mobileMenu" x-cloak class="md:hidden mt-4 pt-4 border-t border-gray-100 space-y-2">
+            <a href="{{ route('mesero.index') }}" class="block px-4 py-3 rounded-xl font-bold {{ Route::is('mesero.index') ? 'bg-orange-50 text-orange-600' : 'text-gray-500' }}">Nueva Orden</a>
+            <a href="{{ route('mesero.ordenes') }}" class="block px-4 py-3 rounded-xl font-bold {{ Route::is('mesero.ordenes') ? 'bg-orange-50 text-orange-600' : 'text-gray-500' }}">Mis Órdenes</a>
+            <form action="{{ route('logout') }}" method="POST">
+                @csrf
+                <button type="submit" class="w-full text-left px-4 py-3 text-red-500 font-bold flex items-center gap-2">
+                    <i data-lucide="log-out" class="w-4 h-4"></i> Salir
+                </button>
+            </form>
         </div>
     </nav>
 
@@ -327,6 +347,30 @@
                 })
                 .catch(error => console.error('Error al verificar mesa:', error));
         });
+
+        // Polling para notificaciones
+        let lastNotifCount = {{ $notificacionesCount ?? 0 }};
+        function pollNotifications() {
+            axios.get('{{ route("mesero.index") }}', { params: { check_notifications: 1 } })
+                .then(response => {
+                    const count = response.data.count;
+                    const badge = document.getElementById('notif-badge');
+                    
+                    if (count > 0) {
+                        badge.innerText = count;
+                        badge.classList.remove('hidden');
+                        if (count > lastNotifCount) {
+                            showToast('¡Tienes una orden lista para entregar!', 'info');
+                        }
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                    lastNotifCount = count;
+                })
+                .catch(err => console.error('Error polling notifications:', err));
+        }
+
+        setInterval(pollNotifications, 5000); // Cada 5 segundos
     </script>
 
     <style>

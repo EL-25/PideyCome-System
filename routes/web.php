@@ -30,6 +30,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/ordenar', [MeseroController::class, 'store'])->name('pedido.store');
         Route::get('/mesa-status/{mesa_id}', [MeseroController::class, 'checkMesaStatus'])->name('mesero.mesa.status');
         Route::post('/entregar/{id}', [MeseroController::class, 'entregar'])->name('mesero.entregar');
+        Route::post('/solicitar-cuenta/{mesa_id}', [MeseroController::class, 'solicitarCuenta'])->name('mesero.solicitar_cuenta');
     });
 
     // --- ÁREA DE COCINA ---
@@ -38,6 +39,7 @@ Route::middleware(['auth'])->group(function () {
         
         // Cambiado a patch para que coincida con @method('PATCH') de tu Blade
         Route::patch('/despachar/{id}', [CocinaController::class, 'avanzarEstado'])->name('cocina.despachar');
+        Route::post('/limpiar', [CocinaController::class, 'limpiarSinEstado'])->name('cocina.limpiar');
     });
 
     // --- CARRITO AJAX ---
@@ -70,8 +72,9 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/usuarios/actualizar/{id}', [AdminController::class, 'updateUsuario'])->name('admin.usuarios.update');
         Route::delete('/usuarios/eliminar/{id}', [AdminController::class, 'destroyUsuario'])->name('admin.usuarios.destroy');
         
-        // Reportes
-        Route::get('/reportes', [AdminController::class, 'reportes'])->name('admin.reportes');
+        // Reportes y Auditoría
+        Route::get('/movimientos', [AdminController::class, 'movimientos'])->name('admin.movimientos');
+        Route::get('/ventas', [AdminController::class, 'ventas'])->name('admin.ventas');
     });
 
     // Ruta para cambio de contraseña obligatoria

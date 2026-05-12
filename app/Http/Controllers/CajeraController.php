@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pedido;
+use App\Mail\FacturaElectronicaMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
 
 class CajeraController extends Controller
@@ -13,10 +15,10 @@ class CajeraController extends Controller
      * Muestra el panel principal de la cajera con las mesas activas.
      * Agrupa los pedidos por mesa_id para que se "acumulen" si no han pagado.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Obtenemos todos los pedidos que NO están pagados
-        $pedidosActivos = Pedido::where('estado', '!=', 'pagado')
+        // Obtenemos solo los pedidos que están esperando cobro
+        $pedidosActivos = Pedido::where('estado', 'por_cobrar')
             ->with(['detalles', 'mesero'])
             ->get();
 
@@ -25,6 +27,10 @@ class CajeraController extends Controller
         $mesasActivas = $pedidosActivos->groupBy(function($item) {
             return $item->mesa_id ?: 'Llevar-' . $item->id;
         });
+
+        if ($request->ajax()) {
+            return view('cajera.partials.mesas_grid', compact('mesasActivas'))->render();
+        }
 
         return view('cajera.index', compact('mesasActivas'));
     }
@@ -63,6 +69,8 @@ class CajeraController extends Controller
         $request->validate([
             'metodo_pago' => 'required|in:efectivo,tarjeta,transferencia',
             'monto_pagado' => 'required|numeric|min:0',
+            'tipo_comprobante' => 'required|in:ticket,factura',
+            'cliente_email' => 'required_if:tipo_comprobante,factura|nullable|email',
         ]);
 
         if (str_starts_with($mesa_id, 'Llevar-')) {
@@ -70,7 +78,7 @@ class CajeraController extends Controller
             $pedidos = Pedido::where('id', $id)->get();
         } else {
             $pedidos = Pedido::where('mesa_id', $mesa_id)
-                ->where('estado', '!=', 'pagado')
+                ->where('estado', 'por_cobrar')
                 ->get();
         }
 
@@ -81,11 +89,25 @@ class CajeraController extends Controller
             $pedido->update([
                 'estado' => 'pagado',
                 'metodo_pago' => $request->metodo_pago,
+                'tipo_comprobante' => $request->tipo_comprobante,
+                'cliente_email' => $request->cliente_email,
                 'cajera_id' => Auth::id(),
                 'updated_at' => Carbon::now(),
             ]);
         }
 
-        return redirect()->route('cajera.index')->with('success', "Pago procesado con éxito. Cambio: $" . number_format($cambio, 2));
+        $mensaje = "Pago procesado con éxito en Restaurante UDB.";
+        if ($request->tipo_comprobante === 'factura') {
+            try {
+                Mail::to($request->cliente_email)->send(new FacturaElectronicaMail($pedidos, $totalAbonar, $pedidos->first()->cliente));
+                $mensaje .= " Factura electrónica enviada a " . $request->cliente_email;
+            } catch (\Exception $e) {
+                $mensaje .= " Error al enviar correo: " . $e->getMessage();
+            }
+        } elseif ($request->metodo_pago === 'efectivo') {
+            $mensaje .= " Cambio: $" . number_format($cambio, 2);
+        }
+
+        return redirect()->route('cajera.index')->with('success', $mensaje);
     }
 }
