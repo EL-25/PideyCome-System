@@ -5,20 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PideYCome - Administración</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        orange: {
+                            50: '#FFF7ED',
+                            100: '#FFEDD5',
+                            200: '#FED7AA',
+                            300: '#FDBA74',
+                            400: '#FB923C',
+                            500: '#E05E1A',
+                            600: '#C24B10',
+                            700: '#9A3412',
+                            800: '#7C2D12',
+                            900: '#431407',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
         [x-cloak] { display: none !important; }
         .custom-scroll::-webkit-scrollbar { width: 6px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #F28705; border-radius: 10px; }
+        body {
+            background-color: #E5E7EB !important;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #E05E1A; border-radius: 10px; }
         @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fade-in 0.4s ease-out; }
     </style>
 </head>
-<body class="bg-[#F2E7DC] min-h-screen font-sans" x-data="{ 
+<body class="bg-[#F3F4F6] min-h-screen font-sans" x-data="{ 
         tab: '{{ request('tab', 'productos') }}', 
         search: '', 
+        categoriaSelected: 'Todos',
         modalProducto: false,
         modalEditProducto: false,
         modalUsuario: false,
@@ -30,7 +56,7 @@
     <nav class="bg-white shadow-sm border-b border-gray-200 px-4 md:px-6 py-3 sticky top-0 z-40">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-2">
-                <div class="bg-[#F28705] p-2 rounded-lg">
+                <div class="bg-[#E05E1A] p-2 rounded-lg">
                     <i data-lucide="utensils" class="w-5 h-5 text-white"></i>
                 </div>
                 <div>
@@ -52,7 +78,7 @@
         
         <div class="flex items-center gap-4 mb-8">
             <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100">
-                <i data-lucide="layout-dashboard" class="w-8 h-8 text-[#F28705]"></i>
+                <i data-lucide="layout-dashboard" class="w-8 h-8 text-[#E05E1A]"></i>
             </div>
             <div>
                 <h1 class="text-3xl font-bold text-gray-800 tracking-tight">Panel Administrativo</h1>
@@ -72,19 +98,19 @@
         <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
             <div class="flex flex-wrap bg-white p-1 rounded-2xl border border-gray-200 shadow-sm w-full md:w-auto">
                 <a href="{{ route('admin.index') }}" 
-                   class="flex-1 md:flex-none px-6 py-2 rounded-xl text-sm font-black transition duration-200 uppercase tracking-tighter {{ Route::is('admin.index') ? 'bg-[#F28705] text-white' : 'text-gray-500 hover:bg-gray-50' }}">
+                   class="flex-1 md:flex-none px-6 py-2 rounded-xl text-sm font-black transition duration-200 uppercase tracking-tighter {{ Route::is('admin.index') ? 'bg-[#E05E1A] text-white' : 'text-gray-500 hover:bg-gray-50' }}">
                     General
                 </a>
                 <a href="{{ route('admin.ventas') }}" 
-                   class="flex-1 md:flex-none px-6 py-2 rounded-xl text-sm font-black transition duration-200 uppercase tracking-tighter {{ Route::is('admin.ventas') ? 'bg-[#F28705] text-white' : 'text-gray-500 hover:bg-gray-50' }}">
+                   class="flex-1 md:flex-none px-6 py-2 rounded-xl text-sm font-black transition duration-200 uppercase tracking-tighter {{ Route::is('admin.ventas') ? 'bg-[#E05E1A] text-white' : 'text-gray-500 hover:bg-gray-50' }}">
                     Ventas
                 </a>
                 <a href="{{ route('admin.movimientos') }}" 
-                   class="flex-1 md:flex-none px-6 py-2 rounded-xl text-sm font-black transition duration-200 uppercase tracking-tighter {{ Route::is('admin.movimientos') ? 'bg-[#F28705] text-white' : 'text-gray-500 hover:bg-gray-50' }}">
+                   class="flex-1 md:flex-none px-6 py-2 rounded-xl text-sm font-black transition duration-200 uppercase tracking-tighter {{ Route::is('admin.movimientos') ? 'bg-[#E05E1A] text-white' : 'text-gray-500 hover:bg-gray-50' }}">
                     Auditoría
                 </a>
                 <a href="{{ route('admin.usuarios') }}" 
-                   class="flex-1 md:flex-none px-6 py-2 rounded-xl text-sm font-black transition duration-200 uppercase tracking-tighter {{ Route::is('admin.usuarios') ? 'bg-[#F28705] text-white' : 'text-gray-500 hover:bg-gray-50' }}">
+                   class="flex-1 md:flex-none px-6 py-2 rounded-xl text-sm font-black transition duration-200 uppercase tracking-tighter {{ Route::is('admin.usuarios') ? 'bg-[#E05E1A] text-white' : 'text-gray-500 hover:bg-gray-50' }}">
                     Usuarios
                 </a>
             </div>
@@ -92,7 +118,7 @@
             <div class="relative w-full md:w-80">
                 <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
                 <input type="text" x-model="search" placeholder="Buscar..."
-                    class="w-full pl-12 pr-4 py-3 bg-white border-2 border-transparent rounded-2xl focus:border-[#F28705] outline-none shadow-sm font-bold text-sm transition">
+                    class="w-full pl-12 pr-4 py-3 bg-white border-2 border-transparent rounded-2xl focus:border-[#E05E1A] outline-none shadow-sm font-bold text-sm transition">
             </div>
         </div>
 

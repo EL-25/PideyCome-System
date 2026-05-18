@@ -38,15 +38,27 @@
                 + Nuevo Producto
             </button>
         </div>
+        <div class="p-8 pb-0">
+            <div class="bg-gray-100/50 p-2 rounded-2xl border border-gray-100 inline-flex gap-1 overflow-x-auto max-w-full">
+                @foreach(['Todos', 'Comida', 'Bebidas', 'Postres'] as $cat)
+                    <button type="button" 
+                            @click="categoriaSelected = '{{ $cat }}'"
+                            class="px-8 py-2.5 rounded-xl font-black transition whitespace-nowrap text-xs uppercase tracking-wider"
+                            :class="categoriaSelected === '{{ $cat }}' ? 'bg-[#E05E1A] text-white shadow-lg shadow-orange-100' : 'bg-white text-gray-400 hover:text-[#E05E1A] shadow-sm'">
+                        {{ $cat }}
+                    </button>
+                @endforeach
+            </div>
+        </div>
         <div class="p-8">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 @foreach($productos as $p)
-                <div x-show="'{{ strtolower($p->nombre) }}'.includes(search.toLowerCase())" 
+                <div x-show="(categoriaSelected === 'Todos' || '{{ $p->categoria }}' === categoriaSelected) && '{{ strtolower($p->nombre) }}'.includes(search.toLowerCase())" 
                     class="p-6 border border-gray-100 rounded-3xl flex items-center justify-between hover:bg-gray-50 transition group">
                     <div class="flex-1">
                         <div class="flex items-center gap-3">
                             <h3 class="font-black text-gray-800 text-lg uppercase tracking-tight">{{ $p->nombre }}</h3>
-                            <span class="bg-orange-50 text-[#F28705] text-[9px] px-3 py-1 rounded-full font-black border border-orange-100 uppercase tracking-widest">Stock: {{ $p->stock }}</span>
+                            <span class="bg-orange-50 text-[#E05E1A] text-[9px] px-3 py-1 rounded-full font-black border border-orange-100 uppercase tracking-widest">Stock: {{ $p->stock }}</span>
                         </div>
                         <p class="text-xl font-black text-emerald-600 mt-1">${{ number_format($p->precio, 2) }}</p>
                     </div>
@@ -84,23 +96,23 @@
 
 <!-- MODAL NUEVO PRODUCTO -->
 <div x-show="modalProducto" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" x-transition x-cloak>
-    <div class="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl border-t-[12px] border-[#F28705] overflow-hidden" @click.away="modalProducto = false">
+    <div class="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl border-t-[12px] border-[#E05E1A] overflow-hidden" @click.away="modalProducto = false">
         <div class="p-10">
             <h3 class="text-3xl font-black text-gray-800 mb-2 uppercase italic">Nuevo Producto</h3>
             <form action="{{ route('admin.productos.store') }}" method="POST" class="space-y-5 mt-6">
                 @csrf
                 <div>
                     <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Nombre</label>
-                    <input type="text" name="nombre" class="w-full px-5 py-3 bg-gray-50 border-2 border-transparent rounded-2xl focus:border-[#F28705] outline-none font-bold" required>
+                    <input type="text" name="nombre" class="w-full px-5 py-3 bg-gray-50 border-2 border-transparent rounded-2xl focus:border-[#E05E1A] outline-none font-bold" required>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Precio ($)</label>
-                        <input type="number" step="0.01" name="precio" class="w-full px-5 py-3 bg-gray-50 border-2 border-transparent rounded-2xl focus:border-[#F28705] outline-none font-bold" required>
+                        <input type="number" step="0.01" name="precio" class="w-full px-5 py-3 bg-gray-50 border-2 border-transparent rounded-2xl focus:border-[#E05E1A] outline-none font-bold" required>
                     </div>
                     <div>
                         <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Categoría</label>
-                        <select name="categoria" class="w-full px-5 py-3 bg-gray-50 border-2 border-transparent rounded-2xl focus:border-[#F28705] outline-none font-bold">
+                        <select name="categoria" class="w-full px-5 py-3 bg-gray-50 border-2 border-transparent rounded-2xl focus:border-[#E05E1A] outline-none font-bold">
                             <option>Comida</option>
                             <option>Bebidas</option>
                             <option>Postres</option>
@@ -109,11 +121,11 @@
                 </div>
                 <div>
                     <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Stock Inicial</label>
-                    <input type="number" name="stock" class="w-full px-5 py-3 bg-gray-50 border-2 border-transparent rounded-2xl focus:border-[#F28705] outline-none font-bold" required>
+                    <input type="number" name="stock" class="w-full px-5 py-3 bg-gray-50 border-2 border-transparent rounded-2xl focus:border-[#E05E1A] outline-none font-bold" required>
                 </div>
                 <div class="flex gap-4 pt-6">
                     <button type="button" @click="modalProducto = false" class="flex-1 px-6 py-4 border-2 border-gray-100 rounded-2xl font-black text-gray-400 hover:bg-gray-50 uppercase tracking-widest transition">CANCELAR</button>
-                    <button type="submit" class="flex-1 px-6 py-4 bg-[#F28705] text-white rounded-2xl font-black hover:scale-105 transition shadow-lg shadow-orange-100 uppercase tracking-widest">GUARDAR</button>
+                    <button type="submit" class="flex-1 px-6 py-4 bg-[#E05E1A] text-white rounded-2xl font-black hover:scale-105 transition shadow-lg shadow-orange-100 uppercase tracking-widest">GUARDAR</button>
                 </div>
             </form>
         </div>

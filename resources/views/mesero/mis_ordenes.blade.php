@@ -5,10 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PideYCome - Mis Órdenes</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        orange: {
+                            50: '#FFF7ED',
+                            100: '#FFEDD5',
+                            200: '#FED7AA',
+                            300: '#FDBA74',
+                            400: '#FB923C',
+                            500: '#E05E1A',
+                            600: '#C24B10',
+                            700: '#9A3412',
+                            800: '#7C2D12',
+                            900: '#431407',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <style>[x-cloak] { display: none !important; }</style>
+    <style>
+        [x-cloak] { display: none !important; }
+        body {
+            background-color: #E5E7EB !important;
+        }
+    </style>
 </head>
 <body class="bg-[#F8F9FA] text-gray-800 font-sans">
 
@@ -136,11 +163,11 @@
             }
         });
 
-        // Auto-actualización cada 5 segundos para ver cambios de cocina en tiempo real
+        // Auto-actualización cada 1.5 segundos para ver cambios de cocina en tiempo real
         setInterval(() => {
             const mesaActual = document.getElementById('filtro-mesa').value;
             filtrarPorMesaAjax(mesaActual);
-        }, 5000);
+        }, 1500);
     </script>
 </body>
 </html>

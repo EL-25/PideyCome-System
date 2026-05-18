@@ -20,6 +20,11 @@ class MeseroController extends Controller
             $query->where('categoria', $request->categoria);
         }
 
+        // Búsqueda por nombre
+        if ($request->filled('buscar')) {
+            $query->where('nombre', 'like', '%' . $request->buscar . '%');
+        }
+
         $productos = $query->get();
         $carrito = session()->get('carrito', []);
 
@@ -143,6 +148,24 @@ class MeseroController extends Controller
     {
         $carrito = session()->get('carrito', []);
         if (empty($carrito)) return redirect()->back()->with('error', 'Orden vacía.');
+
+        $rules = [
+            'cliente' => ['required', 'string', 'regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u'],
+            'tipo_orden' => ['required', 'in:comer_aqui,para_llevar'],
+        ];
+
+        if ($request->tipo_orden === 'comer_aqui') {
+            $rules['mesa_id'] = ['required', 'integer', 'between:1,10'];
+        }
+
+        $messages = [
+            'cliente.required' => 'El nombre del cliente es obligatorio.',
+            'cliente.regex' => 'El nombre del cliente solo debe contener letras (nada de números ni símbolos).',
+            'mesa_id.required' => 'Debe elegir una mesa para comer aquí.',
+            'mesa_id.between' => 'La mesa elegida no es válida.',
+        ];
+
+        $request->validate($rules, $messages);
 
         try {
             DB::transaction(function () use ($request, $carrito) {

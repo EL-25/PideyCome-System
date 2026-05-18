@@ -7,14 +7,41 @@
     
     <title>PideYCome - Panel del Mesero</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        orange: {
+                            50: '#FFF7ED',
+                            100: '#FFEDD5',
+                            200: '#FED7AA',
+                            300: '#FDBA74',
+                            400: '#FB923C',
+                            500: '#E05E1A',
+                            600: '#C24B10',
+                            700: '#9A3412',
+                            800: '#7C2D12',
+                            900: '#431407',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            background-color: #E5E7EB !important;
+        }
+    </style>
 </head>
 <body class="bg-[#F8F9FA] text-gray-800 font-sans">
 
     <div id="toast-container" class="fixed top-5 right-5 z-[100] space-y-3 w-full max-w-[320px] px-4">
-        @if(session('info') || session('success'))
+        @if(session('info') || session('success') || session('error') || $errors->any())
             <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)" class="transition-all duration-500">
                 @if(session('info'))
                     <div class="flex items-center p-4 text-white bg-[#0D1B2A] rounded-xl shadow-lg border-l-4 border-blue-500 animate-fade-in mb-3">
@@ -23,10 +50,24 @@
                     </div>
                 @endif
                 @if(session('success'))
-                    <div class="flex items-center p-4 text-white bg-[#011612] rounded-xl shadow-lg border-l-4 border-green-500 animate-fade-in">
+                    <div class="flex items-center p-4 text-white bg-[#011612] rounded-xl shadow-lg border-l-4 border-green-500 animate-fade-in mb-3">
                         <i data-lucide="check-circle" class="w-5 h-5 mr-3 text-green-400"></i>
                         <span class="text-sm font-medium">{{ session('success') }}</span>
                     </div>
+                @endif
+                @if(session('error'))
+                    <div class="flex items-center p-4 text-white bg-red-900 rounded-xl shadow-lg border-l-4 border-red-500 animate-fade-in mb-3">
+                        <i data-lucide="alert-circle" class="w-5 h-5 mr-3 text-red-400"></i>
+                        <span class="text-sm font-medium">{{ session('error') }}</span>
+                    </div>
+                @endif
+                @if($errors->any())
+                    @foreach($errors->all() as $error)
+                        <div class="flex items-center p-4 text-white bg-red-900 rounded-xl shadow-lg border-l-4 border-red-500 animate-fade-in mb-3">
+                            <i data-lucide="alert-circle" class="w-5 h-5 mr-3 text-red-400"></i>
+                            <span class="text-sm font-medium">{{ $error }}</span>
+                        </div>
+                    @endforeach
                 @endif
             </div>
         @endif
@@ -109,19 +150,27 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
             <div class="lg:col-span-2 space-y-8">
-                <div class="bg-white p-2 rounded-2xl shadow-sm border border-gray-100 inline-flex gap-1 overflow-x-auto max-w-full">
-                    @foreach(['Todos', 'Comida', 'Bebidas', 'Postres'] as $cat)
-                        <button type="button" 
-                                onclick="filtrarCategoriaAjax('{{ $cat }}')"
-                                id="btn-cat-{{ $cat }}"
-                                class="btn-categoria px-8 py-2 rounded-xl font-bold transition whitespace-nowrap 
-                                {{ $cat == 'Todos' ? 'bg-orange-500 text-white shadow-lg shadow-orange-100' : 'bg-white text-gray-400 hover:text-orange-500' }}">
-                            {{ $cat }}
-                        </button>
-                    @endforeach
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="bg-white p-2 rounded-2xl shadow-sm border border-gray-100 inline-flex gap-1 overflow-x-auto max-w-full">
+                        @foreach(['Todos', 'Comida', 'Bebidas', 'Postres'] as $cat)
+                            <button type="button" 
+                                    onclick="filtrarCategoriaAjax('{{ $cat }}')"
+                                    id="btn-cat-{{ $cat }}"
+                                    class="btn-categoria px-8 py-2 rounded-xl font-bold transition whitespace-nowrap 
+                                    {{ $cat == 'Todos' ? 'bg-orange-500 text-white shadow-lg shadow-orange-100' : 'bg-white text-gray-400 hover:text-orange-500' }}">
+                                {{ $cat }}
+                            </button>
+                        @endforeach
+                    </div>
+                    
+                    <div class="relative w-full md:w-72">
+                        <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                        <input type="text" id="buscar_productos" placeholder="Buscar producto..."
+                               class="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none shadow-sm font-bold text-sm transition-all placeholder:text-gray-300">
+                    </div>
                 </div>
 
-                <div id="grid-productos" class="grid grid-cols-1 md:grid-cols-2 gap-6 relative min-h-[400px]">
+                <div id="grid-productos" class="grid grid-cols-1 md:grid-cols-2 gap-6 relative min-h-[400px] items-start">
                     @include('mesero.partials.productos_grid')
                 </div>
             </div>
@@ -160,6 +209,7 @@
                             <div>
                                 <label class="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Cliente <span class="text-red-500">*</span></label>
                                 <input type="text" id="input_cliente" name="cliente" placeholder="Nombre completo..." required 
+                                       pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+" title="El nombre solo debe contener letras (sin números ni símbolos)"
                                        class="w-full mt-2 bg-gray-50 border-transparent rounded-2xl p-4 font-bold focus:bg-white focus:ring-2 focus:ring-orange-500 outline-none transition-all placeholder:text-gray-300">
                             </div>
                         </div>
@@ -206,8 +256,13 @@
                 btnActivo.classList.add('bg-orange-500', 'text-white', 'shadow-lg', 'shadow-orange-100');
             }
 
+            const buscarQuery = document.getElementById('buscar_productos').value;
+
             axios.get('{{ route("mesero.index") }}', { 
-                params: { categoria: categoria }
+                params: { 
+                    categoria: categoria,
+                    buscar: buscarQuery
+                }
             })
             .then(response => {
                 grid.innerHTML = response.data;
@@ -216,6 +271,32 @@
             .catch(error => console.error('Error al filtrar:', error))
             .finally(() => grid.classList.remove('opacity-50'));
         }
+
+        // --- BUSQUEDA CON DEBOUNCE ---
+        let debounceTimer;
+        document.getElementById('buscar_productos').addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                const activeCatBtn = document.querySelector('.btn-categoria.bg-orange-500');
+                const activeCat = activeCatBtn ? activeCatBtn.id.replace('btn-cat-', '') : 'Todos';
+                
+                const grid = document.getElementById('grid-productos');
+                grid.classList.add('opacity-50');
+
+                axios.get('{{ route("mesero.index") }}', { 
+                    params: { 
+                        categoria: activeCat,
+                        buscar: this.value
+                    }
+                })
+                .then(response => {
+                    grid.innerHTML = response.data;
+                    lucide.createIcons();
+                })
+                .catch(error => console.error('Error al buscar:', error))
+                .finally(() => grid.classList.remove('opacity-50'));
+            }, 250);
+        });
 
         // --- FUNCIONES DEL CARRITO ---
         function agregarAlCarritoAjax(id) {
@@ -314,11 +395,19 @@
             setTimeout(() => {
                 toast.classList.add('opacity-0', 'scale-95');
                 setTimeout(() => toast.remove(), 500);
-            }, 4000);
+            }, 5000);
         }
 
         document.getElementById('tipo_orden').addEventListener('change', function() {
-            document.getElementById('div_mesa').style.display = (this.value === 'para_llevar') ? 'none' : 'block';
+            if (this.value === 'para_llevar') {
+                document.getElementById('div_mesa').style.display = 'none';
+                document.getElementById('select_mesa').value = '';
+                const inputCliente = document.getElementById('input_cliente');
+                inputCliente.readOnly = false;
+                inputCliente.classList.remove('bg-gray-100', 'text-gray-500');
+            } else {
+                document.getElementById('div_mesa').style.display = 'block';
+            }
         });
 
         // --- VERIFICAR ESTADO DE LA MESA ---
@@ -370,7 +459,77 @@
                 .catch(err => console.error('Error polling notifications:', err));
         }
 
-        setInterval(pollNotifications, 5000); // Cada 5 segundos
+        setInterval(pollNotifications, 1500); // Cada 1.5 segundos
+
+        // Sincronización silenciosa del menú de productos en tiempo real (cada 5 segundos)
+        function sincronizarProductosSilencioso() {
+            const activeCatBtn = document.querySelector('.btn-categoria.bg-orange-500');
+            const activeCat = activeCatBtn ? activeCatBtn.id.replace('btn-cat-', '') : 'Todos';
+            const buscarInput = document.getElementById('buscar_productos');
+            const buscarQuery = buscarInput ? buscarInput.value : '';
+
+            axios.get('{{ route("mesero.index") }}', { 
+                params: { 
+                    categoria: activeCat,
+                    buscar: buscarQuery
+                }
+            })
+            .then(response => {
+                const grid = document.getElementById('grid-productos');
+                if (grid && grid.innerHTML.trim() !== response.data.trim()) {
+                    grid.innerHTML = response.data;
+                    lucide.createIcons();
+                }
+            })
+            .catch(error => console.error('Error en sincronización silenciosa:', error));
+        }
+
+        setInterval(sincronizarProductosSilencioso, 5000); // Cada 5 segundos
+
+        // Restricción física en tiempo real para el nombre del cliente (solo letras y espacios)
+        const inputCliente = document.getElementById('input_cliente');
+        if (inputCliente) {
+            inputCliente.addEventListener('input', function(e) {
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                const originalValue = this.value;
+                const newValue = originalValue.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '');
+                
+                if (originalValue !== newValue) {
+                    this.value = newValue;
+                    const diff = originalValue.length - newValue.length;
+                    this.setSelectionRange(start - diff, end - diff);
+                }
+            });
+        }
+
+        // Validación al enviar la orden
+        const formPedido = document.querySelector('form[action="{{ route("pedido.store") }}"]');
+        if (formPedido) {
+            formPedido.addEventListener('submit', function(e) {
+                const tipoOrden = document.getElementById('tipo_orden').value;
+                const selectMesa = document.getElementById('select_mesa');
+                const inputCliente = document.getElementById('input_cliente');
+                const clienteVal = inputCliente.value.trim();
+
+                // 1. Debe elegir mesa si es comer_aqui
+                if (tipoOrden === 'comer_aqui' && !selectMesa.value) {
+                    e.preventDefault();
+                    showToast('Por favor, selecciona una mesa para comer aquí.', 'error');
+                    selectMesa.focus();
+                    return false;
+                }
+
+                // 2. El nombre del cliente solo debe contener letras
+                const regexLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/;
+                if (!regexLetras.test(clienteVal)) {
+                    e.preventDefault();
+                    showToast('El nombre del cliente solo debe contener letras (sin números ni símbolos).', 'error');
+                    inputCliente.focus();
+                    return false;
+                }
+            });
+        }
     </script>
 
     <style>
